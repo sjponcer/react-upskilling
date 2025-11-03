@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>React Ecosystem</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+      body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        height: 100vh;
+        background: linear-gradient(135deg, #61dafb 0%, #282c34 100%);
+        color: #fff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .container {
+        max-width: 900px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem 3rem;
+        text-align: center;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p.subtitle {
+        color: #d1d5db;
+        margin-bottom: 2rem;
+      }
+
+      .ecosystem-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+
+      .card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 12px;
+        transition: transform 0.2s ease-in-out, background 0.2s;
+        cursor: pointer;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .card img {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 0.5rem;
+      }
+
+      .card h3 {
+        margin: 0.25rem 0;
+        font-size: 1rem;
+      }
+
+      .card p {
+        font-size: 0.85rem;
+        color: #d1d5db;
+        margin: 0;
+      }
+
+      footer {
+        margin-top: 1.5rem;
+        font-size: 0.85rem;
+        color: #9ca3af;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const tools = [
+        { name: "VS Code", desc: "Editor recomendado", logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg", url: "https://code.visualstudio.com/" },
+        { name: "Vite", desc: "Bundler rápido", logo: "https://vitejs.dev/logo.svg", url: "https://vitejs.dev/" },
+        { name: "React", desc: "Librería UI", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg", url: "https://react.dev/" },
+        { name: "Tailwind CSS", desc: "Estilos utilitarios", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d5/Tailwind_CSS_Logo.svg", url: "https://tailwindcss.com/" },
+        { name: "React Router", desc: "Routing SPA", logo: "https://reactrouter.com/_brand/logo.png", url: "https://reactrouter.com/" },
+        { name: "TanStack Query", desc: "Server state & data fetching", logo: "https://tanstack.com/query/v4/img/logo.svg", url: "https://tanstack.com/query/latest" },
+        { name: "Jest", desc: "Testing", logo: "https://jestjs.io/img/jest.png", url: "https://jestjs.io/" },
+        { name: "Storybook", desc: "Documentar componentes", logo: "https://storybook.js.org/images/logos/icon-storybook.svg", url: "https://storybook.js.org/" },
+        { name: "ESLint + Prettier", desc: "Lint y estilo", logo: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/eslint/eslint-original.svg", url: "https://eslint.org/" },
+      ];
+
+      function Card({ tool }) {
+        return (
+          <div className="card" onClick={() => window.open(tool.url, "_blank")}>
+            <img src={tool.logo} alt={tool.name} />
+            <h3>{tool.name}</h3>
+            <p>{tool.desc}</p>
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <div className="container">
+            <h1>React Ecosystem 🌐</h1>
+            <p className="subtitle">Herramientas esenciales y recomendadas para trabajar con React en 2025</p>
+            <div className="ecosystem-grid">
+              {tools.map((tool, i) => <Card key={i} tool={tool} />)}
+            </div>
+            <footer>Clase 1 — Introducción al ecosistema React</footer>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello React Editable</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+      body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #61dafb 0%, #282c34 100%);
+        color: white;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        max-width: 900px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 2rem 3rem;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(8px);
+      }
+
+      .react-logo {
+        width: 60px;
+        height: 60px;
+        animation: spin 20s linear infinite;
+      }
+
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin: 0.5rem 0 0.25rem;
+      }
+
+      p.subtitle {
+        color: white;
+        margin-bottom: 2rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+      }
+
+      th, td {
+        padding: 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      th {
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: white;
+      }
+
+      td:first-child {
+        color: white;
+        font-weight: 600;
+      }
+
+      tr:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+      }
+
+      input {
+        margin: 0.25rem;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 6px;
+        outline: none;
+      }
+
+      button {
+        margin: 0.25rem;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        background-color: #61dafb;
+        color: white;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+
+      button:hover {
+        background-color: #4fc3e0;
+      }
+
+      footer {
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const initialData = [
+        { concept: "Tipo", angular: "Framework completo", react: "Librería enfocada en la UI" },
+      ];
+
+      function ComparisonTable() {
+        const [rows, setRows] = React.useState(initialData);
+        const [newRow, setNewRow] = React.useState({ concept: "", angular: "", react: "" });
+
+        const handleAddRow = () => {
+          if (!newRow.concept) return;
+          setRows([...rows, newRow]);
+          setNewRow({ concept: "", angular: "", react: "" });
+        };
+
+        const handleDeleteRow = (index) => {
+          setRows(rows.filter((_, i) => i !== index));
+        };
+
+        return (
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Concepto</th>
+                  <th>Angular</th>
+                  <th>React</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={i}>
+                    <td>{row.concept}</td>
+                    <td>{row.angular}</td>
+                    <td>{row.react}</td>
+                    <td>
+                      <button onClick={() => handleDeleteRow(i)}>❌</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div style={{ marginTop: "1rem" }}>
+              <input
+                placeholder="Concepto"
+                value={newRow.concept}
+                onChange={(e) => setNewRow({ ...newRow, concept: e.target.value })}
+              />
+              <input
+                placeholder="Angular"
+                value={newRow.angular}
+                onChange={(e) => setNewRow({ ...newRow, angular: e.target.value })}
+              />
+              <input
+                placeholder="React"
+                value={newRow.react}
+                onChange={(e) => setNewRow({ ...newRow, react: e.target.value })}
+              />
+              <button onClick={handleAddRow}>Agregar</button>
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        return (
+          <div className="container">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg"
+              alt="React Logo"
+              className="react-logo"
+            />
+            <h1>Angular vs React 🚀</h1>
+            <ComparisonTable />
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
