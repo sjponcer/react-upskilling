@@ -8,11 +8,12 @@ function App() {
   const [cards, setCards] = useState<number[]>([])
   const [count, setCount] = useState(0)
   const addCard = () => {
-    console.log('addCard');
+    setCards([...cards, count])
+    setCount(count+1)
   }
   const handleCardClicked = (cardNumber: number) => {
+    setCards([...cards.slice(0, cards.indexOf(cardNumber)), ...cards.slice(cards.indexOf(cardNumber) + 1)])
     console.log('handleCardClicked',cardNumber);
-    
   }
 
   return (
@@ -32,7 +33,7 @@ function App() {
         </button>
       </div>
       {cards.map((cardNumber, index) => (
-        <Card
+        <Card  
           cardClicked={(cardNumber) => handleCardClicked(cardNumber)}
           key={index}
           cardNumber={cardNumber} />
