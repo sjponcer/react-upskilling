@@ -16,6 +16,7 @@ type TrelloBoard = {
   ) => void;
   editingCardId: string | null;
   setEditingCardId: React.Dispatch<React.SetStateAction<string | null>>;
+  removeSubTask: (cardId: string, subtaskId: string) => void;
 };
 
 const BoardContext = createContext<TrelloBoard | undefined>(undefined);
@@ -138,6 +139,22 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const removeSubTask = (cardId: string, subtaskId: string) => {
+    setColumns((prev) =>
+      prev.map((col) => ({
+        ...col,
+        cards: col.cards.map((card) =>
+          card.id === cardId
+            ? {
+                ...card,
+                subTasks: card.subTasks.filter((st) => st.id !== subtaskId),
+              }
+            : card
+        ),
+      }))
+    );
+  };
+
   return (
     <BoardContext.Provider
       value={{
@@ -152,6 +169,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
         updateSubtaskTitle,
         editingCardId,
         setEditingCardId,
+        removeSubTask,
       }}
     >
       {children}
