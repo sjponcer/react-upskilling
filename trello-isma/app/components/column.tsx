@@ -19,7 +19,7 @@ export const Column = memo(function Column({
   const [title, setTitle] = useState(column.title || `Column ${column.id}`);
   const { isOver, setNodeRef } = useDroppable({ id: `column-${column.id}` });
 
-  const cardsJSX = useMemo(
+  const cardsItems = useMemo(
     () => column.cards.map((card) => <Card key={card.id} card={card} />),
     [column.cards, editingCardId]
   );
@@ -69,7 +69,7 @@ export const Column = memo(function Column({
         items={column.cards.map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
-        {cardsJSX}
+        {cardsItems}
       </SortableContext>
     </div>
   );
