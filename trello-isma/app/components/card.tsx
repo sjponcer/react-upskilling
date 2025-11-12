@@ -119,11 +119,14 @@ export const Card = memo(function Card({ card }: { card: Card }) {
       </div>
 
       <span className="text-xs text-gray-400 block">
-        {card.createdAt.toLocaleDateString()}{" "}
-        {card.createdAt.toLocaleTimeString([], {
+        {/* 
+         //TODO ver pq esto aveces hace fallar el card.createdAt
+         */}
+        {/* {card?.createdAt?.toLocaleDateString()}{" "}
+        {card?.createdAt?.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
-        })}
+        })} */}
       </span>
 
       <div className="text-md">

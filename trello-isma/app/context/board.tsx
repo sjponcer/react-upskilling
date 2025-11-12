@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 type TrelloBoard = {
   columns: Column[];
@@ -19,15 +27,154 @@ type TrelloBoard = {
   removeSubTask: (cardId: string, subtaskId: string) => void;
 };
 
+// const initialBoardData: Column[] = [
+//   { id: 1, title: "Backlog", cards: [] },
+//   { id: 2, title: "Development", cards: [] },
+//   { id: 3, title: "QA", cards: [] },
+//   { id: 4, title: "Done", cards: [] },
+// ];
+
 const BoardContext = createContext<TrelloBoard | undefined>(undefined);
 
+const localBoardDataKey = "trello-board-data";
+const initialBoardData: Column[] = [
+  {
+    id: 1,
+    title: "Backlog",
+    cards: [
+      {
+        id: "1762977473135",
+        title: "New Features",
+        createdAt: new Date("2025-11-12T19:57:53.135Z"),
+        subTasks: [
+          { id: "1762977477771", title: "Nueva Subtarea", completed: false },
+          { id: "1762977478384", title: "Nueva Subtarea", completed: false },
+          { id: "1762977479079", title: "Nueva Subtarea", completed: false },
+        ],
+      },
+    ],
+  },
+  {
+    id: 2,
+    title: "Development",
+    cards: [
+      {
+        id: "1762978134760",
+        title: "Issue witl localStorage",
+        createdAt: new Date("2025-11-12T20:08:54.760Z"),
+        subTasks: [
+          {
+            id: "1762978180498",
+            title: "Pregutnar a Santi XD",
+            completed: false,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 3,
+    title: "QA",
+    cards: [
+      {
+        id: "1762977203921",
+        title: "Save data in LocalStorage",
+        createdAt: new Date("2025-11-12T19:53:23.921Z"),
+        subTasks: [
+          {
+            id: "1762977216267",
+            title: "Save in localStorage",
+            completed: true,
+          },
+          {
+            id: "1762977507896",
+            title: "Load data from LocalStorage",
+            completed: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 4,
+    title: "Done",
+    cards: [
+      {
+        id: "1762977201179",
+        title: "Create Trello App",
+        createdAt: new Date("2025-11-12T19:53:21.179Z"),
+        subTasks: [
+          { id: "1762977219348", title: "Create Main App", completed: true },
+          {
+            id: "1762977315187",
+            title: "Create Card/Column Component",
+            completed: true,
+          },
+          {
+            id: "1762977405186",
+            title: "Drag & Drop in column",
+            completed: true,
+          },
+        ],
+      },
+      {
+        id: "1762977230001",
+        title: "Fix - Drang & Drop",
+        createdAt: new Date("2025-11-12T19:53:50.001Z"),
+        subTasks: [
+          {
+            id: "1762977234539",
+            title: "Add Drag & Drop Between Columns",
+            completed: true,
+          },
+          { id: "1762977235127", title: "Keep Order", completed: true },
+        ],
+      },
+      {
+        id: "1762977204097",
+        title: "Create Context and Methods",
+        createdAt: new Date("2025-11-12T19:53:24.097Z"),
+        subTasks: [
+          { id: "1762977217155", title: "Context", completed: true },
+          { id: "1762977217617", title: "Methods", completed: true },
+          {
+            id: "1762977218048",
+            title: "Implements Context",
+            completed: true,
+          },
+        ],
+      },
+    ],
+  },
+];
+
 export const BoardProvider = ({ children }: { children: ReactNode }) => {
-  const [columns, setColumns] = useState<Column[]>([
-    { id: 1, title: "Backlog", cards: [] },
-    { id: 2, title: "Development", cards: [] },
-    { id: 3, title: "QA", cards: [] },
-    { id: 4, title: "Done", cards: [] },
-  ]);
+  const [columns, setColumns] = useState<Column[]>(initialBoardData);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(localBoardDataKey);
+    if (!stored) return;
+
+    try {
+      const parsed = JSON.parse(stored ?? "null") as Column[];
+      const withDates = parsed.map((col) => ({
+        ...col,
+        cards: col.cards.map((card) => ({
+          ...card,
+          createdAt: new Date(card.createdAt),
+        })),
+      }));
+      //TODO ver pq esto aveces hace fallar el card.createdAt
+      setColumns(withDates || initialBoardData);
+    } catch (err) {
+      console.error("Error loading board:", err);
+      setColumns(initialBoardData);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(localBoardDataKey, JSON.stringify(columns));
+  }, [columns]);
 
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
 
