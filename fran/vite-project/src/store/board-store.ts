@@ -6,6 +6,7 @@ interface BoardState {
   columns: Record<ColumnId, TrelloCardData[]>;
   addCard: (card: TrelloCardData, columnId: ColumnId) => void;
   removeCard: (cardId: string, columnId: ColumnId) => void;
+  moveCard: (cardId: string, fromColumnId: ColumnId, toColumnId: ColumnId) => void;
 }
 
 export const useBoardStore = create<BoardState>((set) => ({
@@ -34,5 +35,33 @@ export const useBoardStore = create<BoardState>((set) => ({
         ),
       },
     }));
+  },
+  
+  moveCard: (cardId: string, fromColumnId: ColumnId, toColumnId: ColumnId) => {
+    set((state) => {
+      if (fromColumnId === toColumnId) {
+        return state;
+      }
+
+      const card = state.columns[fromColumnId].find((card: TrelloCardData) => card.id === cardId);
+
+      if (!card) {
+        return state;
+      }
+
+      const newFromColumn = state.columns[fromColumnId].filter(
+        (card: TrelloCardData) => card.id !== cardId
+      );
+
+      const newToColumn = [...state.columns[toColumnId], card];
+
+      return {
+        columns: {
+          ...state.columns,
+          [fromColumnId]: newFromColumn,
+          [toColumnId]: newToColumn,
+        },
+      };
+    });
   },
 }));
