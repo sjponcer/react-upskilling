@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import type { ColumnId } from "@/enums/column-ids";
 import { cn } from "@/lib/utils";
 
 export interface TrelloCardData {
@@ -9,12 +10,29 @@ export interface TrelloCardData {
 
 interface TrelloCardProps {
   card: TrelloCardData;
+  columnId: ColumnId;
   className?: string;
 }
 
-export function TrelloCard({ card, className }: TrelloCardProps) {
+export function TrelloCard({ card, columnId, className }: TrelloCardProps) {
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>) => {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", JSON.stringify({
+      cardId: card.id,
+      fromColumnId: columnId,
+    }));
+    event.currentTarget.style.opacity = "0.5";
+  };
+
+  const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+    event.currentTarget.style.opacity = "1";
+  };
+
   return (
     <Card
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       className={cn(
         "p-3 mb-2 cursor-pointer hover:shadow-md transition-shadow bg-white",
         className
@@ -27,3 +45,4 @@ export function TrelloCard({ card, className }: TrelloCardProps) {
     </Card>
   );
 }
+

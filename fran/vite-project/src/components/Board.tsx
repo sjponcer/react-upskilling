@@ -21,6 +21,7 @@ const initialColumns = [
 export function Board() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const addCard = useBoardStore((state) => state.addCard);
+  const moveCard = useBoardStore((state) => state.moveCard);
   const columns = useBoardStore((state) => state.columns);
 
   const cardsByColumn: Record<string, TrelloCardData[]> = {
@@ -36,6 +37,10 @@ export function Board() {
 
   function handleSaveCard(card: TrelloCardData, columnId: ColumnId) {
     addCard(card, columnId)
+  }
+
+  function handleDropCard(cardId: string, fromColumnId: ColumnId, toColumnId: ColumnId) {
+    moveCard(cardId, fromColumnId, toColumnId);
   }
 
   return (
@@ -57,6 +62,7 @@ export function Board() {
               id={column.id}
               title={column.title}
               cards={columns[column.id] || []}
+              onDrop={handleDropCard}
             />
           ))}
         </div>
