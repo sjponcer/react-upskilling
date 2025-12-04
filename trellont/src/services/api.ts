@@ -32,3 +32,20 @@ export interface Card {
   updatedAt: string;
 }
 
+export const getBoards = async (): Promise<Board[]> => {
+  const response = await fetch(`${API_BASE_URL}/boards`)
+  const json = await response.json()
+  return json.data
+}
+
+export const getBoardById = async (id: string): Promise<BoardDetails> => {
+  const response = await fetch(`${API_BASE_URL}/boards/${id}`)
+  const json = await response.json()
+  return json.data
+}
+
+export const getCards = async (boardId: string): Promise<Card[]> => {
+  const response = await fetch(`${API_BASE_URL}/cards/${boardId}`)
+  const json = await response.json()
+  return json.data
+}
