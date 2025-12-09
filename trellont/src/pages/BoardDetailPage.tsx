@@ -9,6 +9,10 @@ export default function BoardDetailPage() {
 
   const { selectedBoard, setSelectedBoardId, loading, error, cards } = useBoards();
 
+  const handleCreateCard = () => {
+    //hook .createCard => mutation
+    //abrir un form
+  }
   useEffect(() => {
     if (id) {
       setSelectedBoardId(id);
@@ -75,6 +79,7 @@ export default function BoardDetailPage() {
             </div>
           </div>
         </div>
+        <button onClick={() => handleCreateCard()}>crear +</button>
       </header>
 
       <div className="board-columns">
@@ -116,7 +121,7 @@ export default function BoardDetailPage() {
         <div className="column">
           <div className="column-header progress-header">
             <h2>🔄 En progreso</h2>
-            <span className="count">{cards?.filter(c => c.status === 'in-progress').length}</span>
+            <span className="count">{selectedBoard.stats['in-progress']}</span>
           </div>
           <div className="cards-list">
             {cards?.filter(c => c.status === 'in-progress').map(card => (
