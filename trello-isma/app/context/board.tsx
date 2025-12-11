@@ -8,6 +8,8 @@ import {
   useEffect,
 } from "react";
 
+const API_URL = "http://localhost:3001";
+
 type TrelloBoard = {
   columns: Column[];
   setColumns: React.Dispatch<React.SetStateAction<Column[]>>;
@@ -27,279 +29,280 @@ type TrelloBoard = {
   removeSubTask: (cardId: string, subtaskId: string) => void;
 };
 
-// const initialBoardData: Column[] = [
-//   { id: 1, title: "Backlog", cards: [] },
-//   { id: 2, title: "Development", cards: [] },
-//   { id: 3, title: "QA", cards: [] },
-//   { id: 4, title: "Done", cards: [] },
-// ];
-
 const BoardContext = createContext<TrelloBoard | undefined>(undefined);
 
-const localBoardDataKey = "trello-board-data";
-const initialBoardData: Column[] = [
-  {
-    id: 1,
-    title: "Backlog",
-    cards: [
-      {
-        id: "1762977473135",
-        title: "New Features",
-        createdAt: new Date("2025-11-12T19:57:53.135Z"),
-        subTasks: [
-          { id: "1762977477771", title: "Nueva Subtarea", completed: false },
-          { id: "1762977478384", title: "Nueva Subtarea", completed: false },
-          { id: "1762977479079", title: "Nueva Subtarea", completed: false },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Development",
-    cards: [
-      {
-        id: "1762978134760",
-        title: "Issue witl localStorage",
-        createdAt: new Date("2025-11-12T20:08:54.760Z"),
-        subTasks: [
-          {
-            id: "1762978180498",
-            title: "Pregutnar a Santi XD",
-            completed: false,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "QA",
-    cards: [
-      {
-        id: "1762977203921",
-        title: "Save data in LocalStorage",
-        createdAt: new Date("2025-11-12T19:53:23.921Z"),
-        subTasks: [
-          {
-            id: "1762977216267",
-            title: "Save in localStorage",
-            completed: true,
-          },
-          {
-            id: "1762977507896",
-            title: "Load data from LocalStorage",
-            completed: true,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: "Done",
-    cards: [
-      {
-        id: "1762977201179",
-        title: "Create Trello App",
-        createdAt: new Date("2025-11-12T19:53:21.179Z"),
-        subTasks: [
-          { id: "1762977219348", title: "Create Main App", completed: true },
-          {
-            id: "1762977315187",
-            title: "Create Card/Column Component",
-            completed: true,
-          },
-          {
-            id: "1762977405186",
-            title: "Drag & Drop in column",
-            completed: true,
-          },
-        ],
-      },
-      {
-        id: "1762977230001",
-        title: "Fix - Drang & Drop",
-        createdAt: new Date("2025-11-12T19:53:50.001Z"),
-        subTasks: [
-          {
-            id: "1762977234539",
-            title: "Add Drag & Drop Between Columns",
-            completed: true,
-          },
-          { id: "1762977235127", title: "Keep Order", completed: true },
-        ],
-      },
-      {
-        id: "1762977204097",
-        title: "Create Context and Methods",
-        createdAt: new Date("2025-11-12T19:53:24.097Z"),
-        subTasks: [
-          { id: "1762977217155", title: "Context", completed: true },
-          { id: "1762977217617", title: "Methods", completed: true },
-          {
-            id: "1762977218048",
-            title: "Implements Context",
-            completed: true,
-          },
-        ],
-      },
-    ],
-  },
-];
-
 export const BoardProvider = ({ children }: { children: ReactNode }) => {
-  const [columns, setColumns] = useState<Column[]>(initialBoardData);
+  const [columns, setColumns] = useState<Column[]>([]);
+  const [editingCardId, setEditingCardId] = useState<string | null>(null);
 
+  // 👉 1. Cargar datos desde la API al inicio
   useEffect(() => {
-    const stored = localStorage.getItem(localBoardDataKey);
-    if (!stored) return;
+    const fetchColumns = async () => {
+      const res = await fetch(`${API_URL}/columns`);
+      const data: Column[] = await res.json();
 
-    try {
-      const parsed = JSON.parse(stored ?? "null") as Column[];
-      const withDates = parsed.map((col) => ({
+      // convertir createdAt
+      const converted = data.map((col) => ({
         ...col,
         cards: col.cards.map((card) => ({
           ...card,
           createdAt: new Date(card.createdAt),
         })),
       }));
-      //TODO ver pq esto aveces hace fallar el card.createdAt
-      setColumns(withDates || initialBoardData);
-    } catch (err) {
-      console.error("Error loading board:", err);
-      setColumns(initialBoardData);
-    }
+
+      setColumns(converted);
+    };
+
+    fetchColumns();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem(localBoardDataKey, JSON.stringify(columns));
-  }, [columns]);
+  // 👉 Helper: actualizar columna completa en el backend
+  const updateColumn = async (column: Column) => {
+    await fetch(`${API_URL}/columns/${column.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(column),
+    });
+  };
 
-  const [editingCardId, setEditingCardId] = useState<string | null>(null);
+  const updateCard = async (columnId: number, card: Card) => {
+    await fetch(`${API_URL}/columns/${columnId}/cards/${card.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(card),
+    });
+  };
 
-  const setColumnName = (columnId: number, newTitle: string) => {
+  // =============================================================
+  // =============== COLUMN TITLE EDIT ============================
+  // =============================================================
+
+  const setColumnName = async (columnId: number, newTitle: string) => {
     setColumns((prev) =>
       prev.map((col) =>
         col.id === columnId ? { ...col, title: newTitle } : col
       )
     );
+
+    const col = columns.find((c) => c.id === columnId);
+    if (!col) return;
+
+    updateColumn({ ...col, title: newTitle });
   };
 
-  const addCard = (columnId: number, title = "Nuevo Card") => {
+  // =============================================================
+  // ======================= ADD CARD ============================
+  // =============================================================
+
+  const addCard = async (columnId: number, title = "Nuevo Card") => {
+    const newCard: Card = {
+      id: Date.now().toString(),
+      title,
+      createdAt: new Date(),
+      subTasks: [],
+    };
+
+    // actualizar front
     setColumns((prev) =>
       prev.map((col) =>
-        col.id === columnId
-          ? {
-              ...col,
-              cards: [
-                ...col.cards,
-                {
-                  id: Date.now().toString(),
-                  title,
-                  createdAt: new Date(),
-                  subTasks: [],
-                },
-              ],
-            }
-          : col
+        col.id === columnId ? { ...col, cards: [...col.cards, newCard] } : col
       )
     );
+
+    // API
+    await fetch(`${API_URL}/columns/${columnId}/cards`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newCard),
+    });
   };
+
+  // =============================================================
+  // ======================= UPDATE CARD TITLE ===================
+  // =============================================================
 
   const setCardName = (cardId: string, name: string) => {
-    setColumns((prev) =>
-      prev.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) =>
-          card.id === cardId ? { ...card, title: name } : card
-        ),
-      }))
+    const updated = columns.map((col) => ({
+      ...col,
+      cards: col.cards.map((card) =>
+        card.id === cardId ? { ...card, title: name } : card
+      ),
+    }));
+    setColumns(updated);
+
+    // Encontrar card y columna
+    const column = columns.find((col) =>
+      col.cards.some((c) => c.id === cardId)
     );
+    if (!column) return;
+
+    const card = column.cards.find((c) => c.id === cardId);
+    if (!card) return;
+
+    updateCard(column.id, { ...card, title: name });
   };
 
-  const deleteCard = (cardId: string) => {
+  // =============================================================
+  // =========================== DELETE CARD ======================
+  // =============================================================
+
+  const deleteCard = async (cardId: string) => {
+    const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
+    if (!col) return;
+
     setColumns((prev) =>
       prev.map((col) => ({
         ...col,
         cards: col.cards.filter((card) => card.id !== cardId),
       }))
     );
+
+    await fetch(`${API_URL}/columns/${col.id}/cards/${cardId}`, {
+      method: "DELETE",
+    });
   };
 
-  const addSubtask = (cardId: string, title: string) => {
+  // =============================================================
+  // ======================== ADD SUBTASK =========================
+  // =============================================================
+
+  const addSubtask = async (cardId: string, title: string) => {
+    const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
+    if (!col) return;
+
+    const card = col.cards.find((c) => c.id === cardId);
+    if (!card) return;
+
+    const newSubtask = {
+      id: Date.now().toString(),
+      title,
+      completed: false,
+    };
+
+    const updatedCard = {
+      ...card,
+      subTasks: [...card.subTasks, newSubtask],
+    };
+
+    // Update UI
     setColumns((prev) =>
-      prev.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) =>
-          card.id === cardId
-            ? {
-                ...card,
-                subTasks: [
-                  ...card.subTasks,
-                  { id: Date.now().toString(), title, completed: false },
-                ],
-              }
-            : card
-        ),
-      }))
+      prev.map((column) =>
+        column.id === col.id
+          ? {
+              ...column,
+              cards: column.cards.map((c) =>
+                c.id === cardId ? updatedCard : c
+              ),
+            }
+          : column
+      )
     );
+
+    updateCard(col.id, updatedCard);
   };
+
+  // =============================================================
+  // ==================== TOGGLE SUBTASK ==========================
+  // =============================================================
 
   const toggleSubtaskCompleted = (cardId: string, subtaskId: string) => {
+    const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
+    if (!col) return;
+
+    const card = col.cards.find((c) => c.id === cardId);
+    if (!card) return;
+
+    const updatedCard = {
+      ...card,
+      subTasks: card.subTasks.map((st) =>
+        st.id === subtaskId ? { ...st, completed: !st.completed } : st
+      ),
+    };
+
     setColumns((prev) =>
-      prev.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) =>
-          card.id === cardId
-            ? {
-                ...card,
-                subTasks: card.subTasks.map((st) =>
-                  st.id === subtaskId ? { ...st, completed: !st.completed } : st
-                ),
-              }
-            : card
-        ),
-      }))
+      prev.map((column) =>
+        column.id === col.id
+          ? {
+              ...column,
+              cards: column.cards.map((c) =>
+                c.id === cardId ? updatedCard : c
+              ),
+            }
+          : column
+      )
     );
+
+    updateCard(col.id, updatedCard);
   };
+
+  // =============================================================
+  // ====================== UPDATE SUBTASK TITLE ==================
+  // =============================================================
 
   const updateSubtaskTitle = (
     cardId: string,
     subtaskId: string,
     title: string
   ) => {
+    const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
+    if (!col) return;
+
+    const card = col.cards.find((c) => c.id === cardId);
+    if (!card) return;
+
+    const updatedCard = {
+      ...card,
+      subTasks: card.subTasks.map((st) =>
+        st.id === subtaskId ? { ...st, title } : st
+      ),
+    };
+
     setColumns((prev) =>
-      prev.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) =>
-          card.id === cardId
-            ? {
-                ...card,
-                subTasks: card.subTasks.map((st) =>
-                  st.id === subtaskId ? { ...st, title } : st
-                ),
-              }
-            : card
-        ),
-      }))
+      prev.map((column) =>
+        column.id === col.id
+          ? {
+              ...column,
+              cards: column.cards.map((c) =>
+                c.id === cardId ? updatedCard : c
+              ),
+            }
+          : column
+      )
     );
+
+    updateCard(col.id, updatedCard);
   };
 
+  // =============================================================
+  // ========================== REMOVE SUBTASK ====================
+  // =============================================================
+
   const removeSubTask = (cardId: string, subtaskId: string) => {
+    const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
+    if (!col) return;
+
+    const card = col.cards.find((c) => c.id === cardId);
+    if (!card) return;
+
+    const updatedCard = {
+      ...card,
+      subTasks: card.subTasks.filter((st) => st.id !== subtaskId),
+    };
+
     setColumns((prev) =>
-      prev.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) =>
-          card.id === cardId
-            ? {
-                ...card,
-                subTasks: card.subTasks.filter((st) => st.id !== subtaskId),
-              }
-            : card
-        ),
-      }))
+      prev.map((column) =>
+        column.id === col.id
+          ? {
+              ...column,
+              cards: column.cards.map((c) =>
+                c.id === cardId ? updatedCard : c
+              ),
+            }
+          : column
+      )
     );
+
+    updateCard(col.id, updatedCard);
   };
 
   return (
