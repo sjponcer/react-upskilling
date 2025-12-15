@@ -1,90 +1,127 @@
 import express from "express";
 import cors from "cors";
-import { loadData, saveData } from "./storage";
+import { connectDB } from "./db";
 import { Column, Card } from "./types";
+import { getBoard } from "./boardService";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-let board: Column[] = loadData(); // cargar JSON
+connectDB();
 
-// GET — obtener todas las columnas
-app.get("/columns", (req, res) => {
-  res.json(board);
+// GET columnas
+app.get("/columns", async (req, res) => {
+  const board = await getBoard();
+  res.json(board.columns);
 });
 
-// POST — agregar columna
-app.post("/columns", (req, res) => {
+// POST columna
+app.post("/columns", async (req, res) => {
+  const board = await getBoard();
   const newColumn: Column = req.body;
-  board.push(newColumn);
-  saveData(board);
+
+  board.columns.push(newColumn);
+  board.markModified("columns");
+  await board.save();
+
   res.status(201).json(newColumn);
 });
 
-// PUT — actualizar columna
-app.put("/columns/:id", (req, res) => {
+// PUT columna
+app.put("/columns/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const index = board.findIndex((col) => col.id === id);
+  const board = await getBoard();
 
+  const index = board.columns.findIndex((c) => c.id === id);
   if (index === -1) return res.status(404).send("Column not found");
 
-  board[index] = req.body;
-  saveData(board);
-  res.json(board[index]);
+  // reemplazamos el elemento, no el array
+  board.columns[index].set(req.body);
+  board.markModified("columns");
+  await board.save();
+
+  res.json(board.columns[index]);
 });
 
-// DELETE — borrar columna
-app.delete("/columns/:id", (req, res) => {
+// DELETE columna
+app.delete("/columns/:id", async (req, res) => {
   const id = Number(req.params.id);
-  board = board.filter((col) => col.id !== id);
-  saveData(board);
+  const board = await getBoard();
+
+  const index = board.columns.findIndex((c) => c.id === id);
+  if (index === -1) return res.status(404).send("Column not found");
+
+  board.columns.splice(index, 1);
+  board.markModified("columns");
+  await board.save();
+
   res.sendStatus(204);
 });
 
-// POST — agregar tarjeta a una columna específica
-app.post("/columns/:id/cards", (req, res) => {
+// POST card
+app.post("/columns/:id/cards", async (req, res) => {
   const id = Number(req.params.id);
-  const column = board.find((c) => c.id === id);
+  const board = await getBoard();
 
+  const column = board.columns.find((c) => c.id === id);
   if (!column) return res.status(404).send("Column not found");
 
   const newCard: Card = req.body;
   column.cards.push(newCard);
 
-  saveData(board);
+  board.markModified("columns");
+  await board.save();
+
   res.status(201).json(newCard);
 });
 
-// PUT — actualizar card dentro de una columna
-app.put("/columns/:columnId/cards/:cardId", (req, res) => {
+// PUT card
+app.put("/columns/:columnId/cards/:cardId", async (req, res) => {
   const colId = Number(req.params.columnId);
   const cardId = req.params.cardId;
 
-  const column = board.find((c) => c.id === colId);
+  const board = await getBoard();
+  const column = board.columns.find((c) => c.id === colId);
   if (!column) return res.status(404).send("Column not found");
 
   const index = column.cards.findIndex((c) => c.id === cardId);
   if (index === -1) return res.status(404).send("Card not found");
 
-  column.cards[index] = req.body;
+  column.cards[index].set(req.body);
+  board.markModified("columns");
+  await board.save();
 
-  saveData(board);
   res.json(column.cards[index]);
 });
 
 // DELETE card
-app.delete("/columns/:columnId/cards/:cardId", (req, res) => {
+app.delete("/columns/:columnId/cards/:cardId", async (req, res) => {
   const colId = Number(req.params.columnId);
   const cardId = req.params.cardId;
 
-  const column = board.find((c) => c.id === colId);
+  const board = await getBoard();
+  const column = board.columns.find((c) => c.id === colId);
   if (!column) return res.status(404).send("Column not found");
 
-  column.cards = column.cards.filter((c) => c.id !== cardId);
+  const index = column.cards.findIndex((c) => c.id === cardId);
+  if (index === -1) return res.status(404).send("Card not found");
 
-  saveData(board);
+  column.cards.splice(index, 1);
+  board.markModified("columns");
+  await board.save();
+
   res.sendStatus(204);
+});
+
+app.put("/board", async (req, res) => {
+  const board = await getBoard();
+
+  board.columns = req.body.columns;
+  board.markModified("columns");
+  await board.save();
+
+  res.json(board.columns);
 });
 
 app.listen(3001, () => console.log("API running on http://localhost:3001"));

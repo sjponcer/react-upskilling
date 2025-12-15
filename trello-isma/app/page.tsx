@@ -14,7 +14,7 @@ import { BoardProvider, useBoardContext } from "./context/board";
 import { Column } from "./components/column";
 
 function BoardContent() {
-  const { columns, setColumns } = useBoardContext();
+  const { columns, setColumns, saveBoard } = useBoardContext();
 
   const sensors = useSensors(useSensor(PointerSensor));
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -39,7 +39,7 @@ function BoardContent() {
     setActiveId(event.active.id as string);
   };
 
-  const onDragEnd = (event: DragEndEvent) => {
+  const onDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
     if (!over) return;
@@ -51,6 +51,8 @@ function BoardContent() {
     const activeLocation = findCardLocation(activeId);
     const overLocation = isOverColumn ? null : findCardLocation(overId);
     if (!activeLocation) return;
+
+    let updatedColumns: Column[] = [];
 
     setColumns((prev) => {
       const newCols = prev.map((c) => ({ ...c, cards: [...c.cards] }));
@@ -72,8 +74,13 @@ function BoardContent() {
         );
       }
 
+      updatedColumns = newCols;
       return newCols;
     });
+
+    if (updatedColumns.length) {
+      await saveBoard(updatedColumns);
+    }
   };
 
   return (

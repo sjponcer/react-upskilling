@@ -27,6 +27,7 @@ type TrelloBoard = {
   editingCardId: string | null;
   setEditingCardId: React.Dispatch<React.SetStateAction<string | null>>;
   removeSubTask: (cardId: string, subtaskId: string) => void;
+  saveBoard: (columns: Column[]) => void;
 };
 
 const BoardContext = createContext<TrelloBoard | undefined>(undefined);
@@ -35,13 +36,10 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
   const [columns, setColumns] = useState<Column[]>([]);
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
 
-  // 👉 1. Cargar datos desde la API al inicio
   useEffect(() => {
     const fetchColumns = async () => {
       const res = await fetch(`${API_URL}/columns`);
       const data: Column[] = await res.json();
-
-      // convertir createdAt
       const converted = data.map((col) => ({
         ...col,
         cards: col.cards.map((card) => ({
@@ -56,7 +54,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     fetchColumns();
   }, []);
 
-  // 👉 Helper: actualizar columna completa en el backend
   const updateColumn = async (column: Column) => {
     await fetch(`${API_URL}/columns/${column.id}`, {
       method: "PUT",
@@ -73,10 +70,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  // =============================================================
-  // =============== COLUMN TITLE EDIT ============================
-  // =============================================================
-
   const setColumnName = async (columnId: number, newTitle: string) => {
     setColumns((prev) =>
       prev.map((col) =>
@@ -90,10 +83,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     updateColumn({ ...col, title: newTitle });
   };
 
-  // =============================================================
-  // ======================= ADD CARD ============================
-  // =============================================================
-
   const addCard = async (columnId: number, title = "Nuevo Card") => {
     const newCard: Card = {
       id: Date.now().toString(),
@@ -102,24 +91,18 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       subTasks: [],
     };
 
-    // actualizar front
     setColumns((prev) =>
       prev.map((col) =>
         col.id === columnId ? { ...col, cards: [...col.cards, newCard] } : col
       )
     );
 
-    // API
     await fetch(`${API_URL}/columns/${columnId}/cards`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newCard),
     });
   };
-
-  // =============================================================
-  // ======================= UPDATE CARD TITLE ===================
-  // =============================================================
 
   const setCardName = (cardId: string, name: string) => {
     const updated = columns.map((col) => ({
@@ -130,7 +113,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     }));
     setColumns(updated);
 
-    // Encontrar card y columna
     const column = columns.find((col) =>
       col.cards.some((c) => c.id === cardId)
     );
@@ -141,10 +123,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
 
     updateCard(column.id, { ...card, title: name });
   };
-
-  // =============================================================
-  // =========================== DELETE CARD ======================
-  // =============================================================
 
   const deleteCard = async (cardId: string) => {
     const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
@@ -161,10 +139,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       method: "DELETE",
     });
   };
-
-  // =============================================================
-  // ======================== ADD SUBTASK =========================
-  // =============================================================
 
   const addSubtask = async (cardId: string, title: string) => {
     const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
@@ -184,7 +158,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       subTasks: [...card.subTasks, newSubtask],
     };
 
-    // Update UI
     setColumns((prev) =>
       prev.map((column) =>
         column.id === col.id
@@ -200,10 +173,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
 
     updateCard(col.id, updatedCard);
   };
-
-  // =============================================================
-  // ==================== TOGGLE SUBTASK ==========================
-  // =============================================================
 
   const toggleSubtaskCompleted = (cardId: string, subtaskId: string) => {
     const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
@@ -234,10 +203,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
 
     updateCard(col.id, updatedCard);
   };
-
-  // =============================================================
-  // ====================== UPDATE SUBTASK TITLE ==================
-  // =============================================================
 
   const updateSubtaskTitle = (
     cardId: string,
@@ -273,10 +238,6 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     updateCard(col.id, updatedCard);
   };
 
-  // =============================================================
-  // ========================== REMOVE SUBTASK ====================
-  // =============================================================
-
   const removeSubTask = (cardId: string, subtaskId: string) => {
     const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
     if (!col) return;
@@ -305,6 +266,14 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     updateCard(col.id, updatedCard);
   };
 
+  const saveBoard = async (columns: Column[]) => {
+    await fetch(`${API_URL}/board`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ columns }),
+    });
+  };
+
   return (
     <BoardContext.Provider
       value={{
@@ -320,6 +289,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
         editingCardId,
         setEditingCardId,
         removeSubTask,
+        saveBoard,
       }}
     >
       {children}
