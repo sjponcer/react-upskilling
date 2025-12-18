@@ -1,16 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import "./BoardsPage.css";
 import { useBoards } from "../hooks/useBoards";
+import AddBoardModal from "@/modals/AddBoardModal";
 
 export default function BoardsPage() {
   const navigate = useNavigate();
-  const { data, error, isLoading } = useBoards();
+  const { boards, error, loading, setSelectedBoardId } = useBoards();
 
   const handleBoardClick = (boardId: string) => {
+    console.log("🚀 ~ handleBoardClick ~ boardId:", boardId);
+    setSelectedBoardId(boardId);
     navigate(`/board/${boardId}`);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="boards-page">
         <div className="loading">
@@ -41,13 +44,13 @@ export default function BoardsPage() {
       </header>
 
       <div className="boards-grid">
-        {data?.length === 0 ? (
+        {boards?.length === 0 ? (
           <div className="empty-state">
             <h3>No hay tableros disponibles</h3>
             <p>Crea tu primer tablero para comenzar</p>
           </div>
         ) : (
-          data?.map((board) => (
+          boards?.map((board) => (
             <div
               key={board.id}
               className="board-card"
@@ -67,6 +70,8 @@ export default function BoardsPage() {
             </div>
           ))
         )}
+
+        <AddBoardModal></AddBoardModal>
       </div>
     </div>
   );

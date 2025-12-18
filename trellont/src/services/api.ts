@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 export interface Board {
   id: string;
@@ -14,7 +15,7 @@ export interface BoardDetails {
   createdAt: string;
   stats: {
     todo: number;
-    'in-progress': number;
+    "in-progress": number;
     done: number;
   };
   totalCards: number;
@@ -23,8 +24,8 @@ export interface BoardDetails {
 export interface Card {
   id: string;
   title: string;
-  status: 'todo' | 'in-progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
+  status: "todo" | "in-progress" | "done";
+  priority: "low" | "medium" | "high";
   assignedTo?: string;
   dueDate?: string;
   tags: string[];
@@ -32,55 +33,17 @@ export interface Card {
   updatedAt: string;
 }
 
-interface BoardsResponse {
-  success: boolean;
-  count: number;
-  data: Board[];
-}
-
-interface BoardDetailsResponse {
-  success: boolean;
-  data: BoardDetails;
-}
-
-interface CardsResponse {
-  success: boolean;
-  boardId: string;
-  boardName: string;
-  count: number;
-  data: Card[];
-}
-
-export const fetchBoards = async (): Promise<Board[]> => {
+export const getBoards = async (): Promise<Board[]> => {
   const response = await fetch(`${API_BASE_URL}/boards`);
-  if (!response.ok) {
-    throw new Error('Error al obtener los tableros');
-  }
-  const data: BoardsResponse = await response.json();
-  return data.data;
+  const json = await response.json();
+  return json.data;
 };
 
-export const fetchBoardDetails = async (boardId: string): Promise<BoardDetails> => {
-  const response = await fetch(`${API_BASE_URL}/boards/${boardId}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener los detalles del tablero');
-  }
-  const data: BoardDetailsResponse = await response.json();
-  return {
-    ...data.data,
-    id: boardId,
-  };
+export const getBoardById = async (id: string): Promise<BoardDetails> => {
+  const response = await fetch(`${API_BASE_URL}/boards/${id}`);
+  const json = await response.json();
+  return json.data;
 };
-
-export const fetchCardsByBoard = async (boardId: string): Promise<Card[]> => {
-  const response = await fetch(`${API_BASE_URL}/cards/${boardId}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener las cards del tablero');
-  }
-  const data: CardsResponse = await response.json();
-  return data.data;
-};
-
 
 export interface CreateBoardInput {
   name: string;
@@ -90,21 +53,21 @@ export interface CreateBoardInput {
 
 export const createBoard = async (data: CreateBoardInput): Promise<Board> => {
   const response = await fetch(`${API_BASE_URL}/boards`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
-  
+  });
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Error al crear el board')
+    const error = await response.json();
+    throw new Error(error.message || "Error al crear el board");
   }
-  
-  const json = await response.json()
-  return json.data
-}
+
+  const json = await response.json();
+  return json.data;
+};
 
 export interface UpdateBoardInput {
   name?: string;
@@ -112,41 +75,61 @@ export interface UpdateBoardInput {
   color?: string;
 }
 
-export const updateBoard = async (id: string, data: UpdateBoardInput): Promise<Board> => {
+export const updateBoard = async (
+  id: string,
+  data: UpdateBoardInput
+): Promise<Board> => {
   const response = await fetch(`${API_BASE_URL}/boards/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
-  
+  });
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Error al actualizar el board')
+    const error = await response.json();
+    throw new Error(error.message || "Error al actualizar el board");
   }
-  
-  const json = await response.json()
-  return json.data
-}
+
+  const json = await response.json();
+  return json.data;
+};
+
+export const getCardsByBoard = async (boardId: string): Promise<Card[]> => {
+  const response = await fetch(`${API_BASE_URL}/cards/${boardId}`);
+
+  if (!response.ok) {
+    throw new Error("Error al obtener las cards");
+  }
+
+  const json = await response.json();
+  return json.data;
+};
+
+export const getCards = async (boardId: string): Promise<Card[]> => {
+  const response = await fetch(`${API_BASE_URL}/cards/${boardId}`);
+  const json = await response.json();
+  return json.data;
+};
 
 export const deleteBoard = async (id: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/boards/${id}`, {
-    method: 'DELETE',
-  })
-  
+    method: "DELETE",
+  });
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Error al eliminar el board')
+    const error = await response.json();
+    throw new Error(error.message || "Error al eliminar el board");
   }
-}
+};
 
 export interface CreateCardInput {
   boardId: string;
   title: string;
   description?: string;
-  status?: 'todo' | 'in-progress' | 'done';
-  priority?: 'low' | 'medium' | 'high';
+  status?: "todo" | "in-progress" | "done";
+  priority?: "low" | "medium" | "high";
   assignedTo?: string;
   dueDate?: string;
   tags?: string[];
@@ -154,57 +137,60 @@ export interface CreateCardInput {
 
 export const createCard = async (data: CreateCardInput): Promise<Card> => {
   const response = await fetch(`${API_BASE_URL}/cards`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
-  
+  });
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Error al crear la card')
+    const error = await response.json();
+    throw new Error(error.message || "Error al crear la card");
   }
-  
-  const json = await response.json()
-  return json.data
-}
+
+  const json = await response.json();
+  return json.data;
+};
 
 export interface UpdateCardInput {
   title?: string;
   description?: string;
-  status?: 'todo' | 'in-progress' | 'done';
-  priority?: 'low' | 'medium' | 'high';
+  status?: "todo" | "in-progress" | "done";
+  priority?: "low" | "medium" | "high";
   assignedTo?: string;
   dueDate?: string;
   tags?: string[];
 }
 
-export const updateCard = async (cardId: string, data: UpdateCardInput): Promise<Card> => {
+export const updateCard = async (
+  cardId: string,
+  data: UpdateCardInput
+): Promise<Card> => {
   const response = await fetch(`${API_BASE_URL}/cards/${cardId}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
-  })
-  
+  });
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Error al actualizar la card')
+    const error = await response.json();
+    throw new Error(error.message || "Error al actualizar la card");
   }
-  
-  const json = await response.json()
-  return json.data
-}
+
+  const json = await response.json();
+  return json.data;
+};
 
 export const deleteCard = async (cardId: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/cards/${cardId}`, {
-    method: 'DELETE',
-  })
-  
+    method: "DELETE",
+  });
+
   if (!response.ok) {
-    const error = await response.json()
-    throw new Error(error.message || 'Error al eliminar la card')
+    const error = await response.json();
+    throw new Error(error.message || "Error al eliminar la card");
   }
-}
+};

@@ -7,7 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { uuidv4, z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,37 +18,40 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useBoards } from "@/hooks/useBoards";
 
 const formSchema = z.object({
-  title: z.string().min(5, {
+  name: z.string().min(5, {
     message: "Name must be at least 5 characters.",
   }),
   description: z.string().min(5, {
-    message: "Title must be at least 5 characters.",
+    message: "description must be at least 5 characters.",
   }),
 });
-interface Props {
-  // onClose: () => void;
-}
 
 export default function AddBoardModal() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
+      name: "",
       description: "",
     },
   });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const { createBoard } = useBoards();
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log("🚀 ~ onSubmit ~ values:", values);
+  function onSubmit(formValues: z.infer<typeof formSchema>) {
+    const newBoard = {
+      id: uuidv4(),
+      ...formValues,
+    };
 
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+    createBoard(newBoard);
+    setModalOpen(false);
+    form.reset();
   }
+
   return (
     <Popover
       defaultOpen={false}
@@ -68,7 +71,7 @@ export default function AddBoardModal() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Board Title</FormLabel>
