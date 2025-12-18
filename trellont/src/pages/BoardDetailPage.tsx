@@ -2,6 +2,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./BoardDetailPage.css";
 import { useBoards } from "@/hooks/useBoards";
 import { useEffect } from "react";
+import AddCardModal from "@/modals/AddCardModal";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
@@ -60,6 +61,7 @@ export default function BoardDetailPage() {
         <button className="back-button" onClick={() => navigate("/boards")}>
           ← Volver
         </button>
+
         <div className="board-info">
           <h1>{selectedBoard.name}</h1>
           {selectedBoard.description && (
@@ -88,6 +90,8 @@ export default function BoardDetailPage() {
         </div>
         {/* <button onClick={() => handleCreateCard()}>crear +</button> */}
       </header>
+      
+      <AddCardModal></AddCardModal>;
 
       <div className="board-columns">
         <div className="column">

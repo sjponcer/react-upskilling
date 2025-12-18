@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -20,37 +18,41 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useBoards } from "@/hooks/useBoards";
+import { useParams } from "react-router-dom";
 
 const formSchema = z.object({
-  name: z.string().min(5, {
-    message: "Name must be at least 5 characters.",
+  title: z.string().min(5, {
+    message: "Title must be at least 5 characters.",
   }),
   description: z.string().min(5, {
     message: "description must be at least 5 characters.",
   }),
 });
 
-export default function AddBoardModal() {
+export default function AddCardModal() {
+  const { id } = useParams<{ id: string }>();
+  const [modalOpen, setModalOpen] = useState(false);
+  const { createCard } = useBoards();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      title: "",
       description: "",
     },
   });
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const { createBoard } = useBoards();
-
   function onSubmit(formValues: z.infer<typeof formSchema>) {
-    const newBoard = {
-      id: uuidv4(),
-      ...formValues,
-    };
+    if (id) {
+      const newBoard = {
+        boardId: id,
+        ...formValues,
+      };
 
-    createBoard(newBoard);
-    setModalOpen(false);
-    form.reset();
+      createCard(newBoard);
+      setModalOpen(false);
+      form.reset();
+    }
   }
 
   return (
@@ -61,7 +63,7 @@ export default function AddBoardModal() {
       onOpenChange={(open) => setModalOpen(open)}
     >
       <PopoverTrigger asChild>
-        <Button onClick={() => setModalOpen(true)}>Crear tablero</Button>
+        <Button onClick={() => setModalOpen(true)}>Create Card</Button>
       </PopoverTrigger>
       <PopoverContent
         className="w-80"
@@ -72,10 +74,10 @@ export default function AddBoardModal() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="name"
+              name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Board Title</FormLabel>
+                  <FormLabel>Card Title</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -88,7 +90,7 @@ export default function AddBoardModal() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Board Description</FormLabel>
+                  <FormLabel>Card Description</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
