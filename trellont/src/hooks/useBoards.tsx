@@ -18,8 +18,7 @@ import { useState } from "react";
 
 export const useBoards = () => {
   const queryClient = useQueryClient();
-  const [selectedBoardId, setSelectedBoardId] = useState<string | null>();
-  console.log("🚀 ~ useBoards ~ selectedBoardId:", selectedBoardId)
+  const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
 
   /**
    * useQuery (con fetchBoards) se encarga de obtener y cachear la

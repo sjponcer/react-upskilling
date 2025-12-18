@@ -1,12 +1,19 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./BoardDetailPage.css";
 import { useBoards } from "@/hooks/useBoards";
+import { useEffect } from "react";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
-  const { selectedBoard, cards, error, loading } = useBoards();
-  console.log("🚀 ~ BoardDetailPage ~ selectedBoard:", selectedBoard)
-  
+  const { id } = useParams<{ id: string }>();
+  const { selectedBoard, cards, error, loading, setSelectedBoardId } =
+    useBoards();
+
+  useEffect(() => {
+    if (id) {
+      setSelectedBoardId(id);
+    }
+  });
 
   if (loading) {
     return (

@@ -5,11 +5,9 @@ import AddBoardModal from "@/modals/AddBoardModal";
 
 export default function BoardsPage() {
   const navigate = useNavigate();
-  const { boards, error, loading, setSelectedBoardId } = useBoards();
+  const { boards, error, loading } = useBoards();
 
   const handleBoardClick = (boardId: string) => {
-    console.log("🚀 ~ handleBoardClick ~ boardId:", boardId);
-    setSelectedBoardId(boardId);
     navigate(`/board/${boardId}`);
   };
 
