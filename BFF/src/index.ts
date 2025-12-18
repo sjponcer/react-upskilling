@@ -22,14 +22,24 @@ connectDB();
 // Rutas
 app.get('/', (req: Request, res: Response) => {
   res.json({
-    message: 'Bienvenido a la API BFF - Boards & Cards',
-    version: '2.0.0',
+    message: 'Bienvenido a la API BFF - Trellont',
+    version: '3.0.0',
     database: 'MongoDB',
     endpoints: {
-      boards: '/api/boards',
-      boardDetails: '/api/boards/:id',
-      cardsByBoard: '/api/cards/:boardId',
-      cardDetails: '/api/card/details/:cardId'
+      boards: {
+        getAll: 'GET /api/boards',
+        getById: 'GET /api/boards/:id',
+        create: 'POST /api/boards',
+        update: 'PUT /api/boards/:id',
+        delete: 'DELETE /api/boards/:id'
+      },
+      cards: {
+        getByBoard: 'GET /api/cards/:boardId',
+        getDetails: 'GET /api/card/details/:cardId',
+        create: 'POST /api/cards',
+        update: 'PUT /api/cards/:cardId',
+        delete: 'DELETE /api/cards/:cardId'
+      }
     }
   });
 });
@@ -43,9 +53,18 @@ app.use('/api/card', cardsRouter);
 app.listen(PORT, () => {
   console.log(`\n🚀 Servidor corriendo en http://localhost:${PORT}`);
   console.log(`\n📚 Endpoints disponibles:`);
-  console.log(`   - GET  http://localhost:${PORT}/api/boards`);
-  console.log(`   - GET  http://localhost:${PORT}/api/cards/:boardId`);
-  console.log(`   - GET  http://localhost:${PORT}/api/card/details/:cardId`);
+  console.log(`\n   📋 Boards:`);
+  console.log(`   - GET    http://localhost:${PORT}/api/boards`);
+  console.log(`   - GET    http://localhost:${PORT}/api/boards/:id`);
+  console.log(`   - POST   http://localhost:${PORT}/api/boards`);
+  console.log(`   - PUT    http://localhost:${PORT}/api/boards/:id`);
+  console.log(`   - DELETE http://localhost:${PORT}/api/boards/:id`);
+  console.log(`\n   📝 Cards:`);
+  console.log(`   - GET    http://localhost:${PORT}/api/cards/:boardId`);
+  console.log(`   - GET    http://localhost:${PORT}/api/card/details/:cardId`);
+  console.log(`   - POST   http://localhost:${PORT}/api/cards`);
+  console.log(`   - PUT    http://localhost:${PORT}/api/cards/:cardId`);
+  console.log(`   - DELETE http://localhost:${PORT}/api/cards/:cardId`);
   console.log(`\n💡 Tip: Ejecuta 'npm run seed' para cargar datos de ejemplo\n`);
 });
 
