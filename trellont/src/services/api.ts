@@ -81,17 +81,6 @@ export const fetchCardsByBoard = async (boardId: string): Promise<Card[]> => {
   return data.data;
 };
 
-export const getBoards = async (): Promise<Board[]> => {
-  const response = await fetch(`${API_BASE_URL}/boards`)
-  const json = await response.json()
-  return json.data
-}
-
-export const getBoardById = async (id: string): Promise<BoardDetails> => {
-  const response = await fetch(`${API_BASE_URL}/boards/${id}`)
-  const json = await response.json()
-  return json.data
-}
 
 export interface CreateBoardInput {
   name: string;
@@ -218,21 +207,4 @@ export const deleteCard = async (cardId: string): Promise<void> => {
     const error = await response.json()
     throw new Error(error.message || 'Error al eliminar la card')
   }
-}
-
-export const getCardsByBoard = async (boardId: string): Promise<Card[]> => {
-  const response = await fetch(`${API_BASE_URL}/cards/${boardId}`)
-  
-  if (!response.ok) {
-    throw new Error('Error al obtener las cards')
-  }
-  
-  const json = await response.json()
-  return json.data
-}
-
-export const getCards = async (boardId: string): Promise<Card[]> => {
-  const response = await fetch(`${API_BASE_URL}/cards/${boardId}`)
-  const json = await response.json()
-  return json.data
 }
