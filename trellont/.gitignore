@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+idurar-erp-crm/*
+idurar-erp-crm/
 
 # Editor directories and files
 .vscode/*
