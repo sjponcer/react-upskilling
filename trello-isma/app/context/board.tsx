@@ -7,8 +7,8 @@ import {
   ReactNode,
   useEffect,
 } from "react";
-
-const API_URL = "http://localhost:3001";
+import { boardService } from "../services/boardService";
+import type { Column, Card } from "../models/models";
 
 type TrelloBoard = {
   columns: Column[];
@@ -38,37 +38,13 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const fetchColumns = async () => {
-      const res = await fetch(`${API_URL}/columns`);
-      const data: Column[] = await res.json();
-      const converted = data.map((col) => ({
-        ...col,
-        cards: col.cards.map((card) => ({
-          ...card,
-          createdAt: new Date(card.createdAt),
-        })),
-      }));
-
-      setColumns(converted);
+      const data = await boardService.fetchColumns();
+      setColumns(data);
     };
 
     fetchColumns();
   }, []);
 
-  const updateColumn = async (column: Column) => {
-    await fetch(`${API_URL}/columns/${column.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(column),
-    });
-  };
-
-  const updateCard = async (columnId: number, card: Card) => {
-    await fetch(`${API_URL}/columns/${columnId}/cards/${card.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(card),
-    });
-  };
 
   const setColumnName = async (columnId: number, newTitle: string) => {
     setColumns((prev) =>
@@ -80,7 +56,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     const col = columns.find((c) => c.id === columnId);
     if (!col) return;
 
-    updateColumn({ ...col, title: newTitle });
+    await boardService.updateColumn({ ...col, title: newTitle });
   };
 
   const addCard = async (columnId: number, title = "Nuevo Card") => {
@@ -97,14 +73,10 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       )
     );
 
-    await fetch(`${API_URL}/columns/${columnId}/cards`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newCard),
-    });
+    await boardService.addCard(columnId, newCard);
   };
 
-  const setCardName = (cardId: string, name: string) => {
+  const setCardName = async (cardId: string, name: string) => {
     const updated = columns.map((col) => ({
       ...col,
       cards: col.cards.map((card) =>
@@ -121,7 +93,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
     const card = column.cards.find((c) => c.id === cardId);
     if (!card) return;
 
-    updateCard(column.id, { ...card, title: name });
+    await boardService.updateCard(column.id, { ...card, title: name });
   };
 
   const deleteCard = async (cardId: string) => {
@@ -135,9 +107,7 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       }))
     );
 
-    await fetch(`${API_URL}/columns/${col.id}/cards/${cardId}`, {
-      method: "DELETE",
-    });
+    await boardService.deleteCard(col.id, cardId);
   };
 
   const addSubtask = async (cardId: string, title: string) => {
@@ -162,49 +132,55 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       prev.map((column) =>
         column.id === col.id
           ? {
-              ...column,
-              cards: column.cards.map((c) =>
-                c.id === cardId ? updatedCard : c
-              ),
-            }
+            ...column,
+            cards: column.cards.map((c) =>
+              c.id === cardId ? updatedCard : c
+            ),
+          }
           : column
       )
     );
 
-    updateCard(col.id, updatedCard);
+    await boardService.updateCard(col.id, updatedCard);
   };
 
-  const toggleSubtaskCompleted = (cardId: string, subtaskId: string) => {
-    const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
-    if (!col) return;
+  const toggleSubtaskCompleted = async (cardId: string, subtaskId: string) => {
+    const column = columns.find((col) =>
+      col.cards.some((card) => card.id === cardId)
+    );
+    if (!column) return;
 
-    const card = col.cards.find((c) => c.id === cardId);
+    const card = column.cards.find((c) => c.id === cardId);
     if (!card) return;
+
+    const updatedSubTasks = card.subTasks.map((subtask) =>
+      subtask.id === subtaskId
+        ? { ...subtask, completed: !subtask.completed }
+        : subtask
+    );
 
     const updatedCard = {
       ...card,
-      subTasks: card.subTasks.map((st) =>
-        st.id === subtaskId ? { ...st, completed: !st.completed } : st
-      ),
+      subTasks: updatedSubTasks,
     };
 
-    setColumns((prev) =>
-      prev.map((column) =>
-        column.id === col.id
+    setColumns((prevColumns) =>
+      prevColumns.map((col) =>
+        col.id === column.id
           ? {
-              ...column,
-              cards: column.cards.map((c) =>
-                c.id === cardId ? updatedCard : c
-              ),
-            }
-          : column
+            ...col,
+            cards: col.cards.map((c) =>
+              c.id === cardId ? updatedCard : c
+            ),
+          }
+          : col
       )
     );
 
-    updateCard(col.id, updatedCard);
+    await boardService.updateCard(column.id, updatedCard);
   };
 
-  const updateSubtaskTitle = (
+  const updateSubtaskTitle = async (
     cardId: string,
     subtaskId: string,
     title: string
@@ -226,19 +202,19 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       prev.map((column) =>
         column.id === col.id
           ? {
-              ...column,
-              cards: column.cards.map((c) =>
-                c.id === cardId ? updatedCard : c
-              ),
-            }
+            ...column,
+            cards: column.cards.map((c) =>
+              c.id === cardId ? updatedCard : c
+            ),
+          }
           : column
       )
     );
 
-    updateCard(col.id, updatedCard);
+    await boardService.updateCard(col.id, updatedCard);
   };
 
-  const removeSubTask = (cardId: string, subtaskId: string) => {
+  const removeSubTask = async (cardId: string, subtaskId: string) => {
     const col = columns.find((c) => c.cards.some((card) => card.id === cardId));
     if (!col) return;
 
@@ -254,24 +230,20 @@ export const BoardProvider = ({ children }: { children: ReactNode }) => {
       prev.map((column) =>
         column.id === col.id
           ? {
-              ...column,
-              cards: column.cards.map((c) =>
-                c.id === cardId ? updatedCard : c
-              ),
-            }
+            ...column,
+            cards: column.cards.map((c) =>
+              c.id === cardId ? updatedCard : c
+            ),
+          }
           : column
       )
     );
 
-    updateCard(col.id, updatedCard);
+    await boardService.updateCard(col.id, updatedCard);
   };
 
   const saveBoard = async (columns: Column[]) => {
-    await fetch(`${API_URL}/board`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ columns }),
-    });
+    await boardService.saveBoard(columns);
   };
 
   return (

@@ -6,6 +6,7 @@ import {
 import { memo, useState, useMemo } from "react";
 import { useBoardContext } from "../context/board";
 import { Card } from "./card";
+import { AddCardModal } from "./AddCardModal";
 
 export const Column = memo(function Column({
   column,
@@ -14,9 +15,10 @@ export const Column = memo(function Column({
   column: Column;
   index: number;
 }) {
-  const { setColumnName, editingCardId, addCard } = useBoardContext();
+  const { setColumnName, editingCardId } = useBoardContext();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(column.title || `Column ${column.id}`);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { isOver, setNodeRef } = useDroppable({ id: `column-${column.id}` });
 
   const cardsItems = useMemo(
@@ -41,11 +43,17 @@ export const Column = memo(function Column({
       {index === 0 && (
         <div
           className="absolute top-2 right-4 transition-opacity cursor-pointer text-white text-xl select-none hover:scale-110"
-          onClick={() => addCard(column.id)}
+          onClick={() => setIsModalOpen(true)}
         >
           <i className="fas fa-plus"></i>
         </div>
       )}
+
+      <AddCardModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        columnId={column.id}
+      />
 
       {isEditing ? (
         <input
