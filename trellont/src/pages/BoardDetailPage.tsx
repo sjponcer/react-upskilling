@@ -1,20 +1,12 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./BoardDetailPage.css";
 import { useBoards } from "@/hooks/useBoards";
-import { useEffect } from "react";
 import AddCardModal from "@/modals/AddCardModal";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const { selectedBoard, cards, error, loading, setSelectedBoardId } =
-    useBoards();
+  const { selectedBoard, cards, error, loading } = useBoards();
 
-  useEffect(() => {
-    if (id) {
-      setSelectedBoardId(id);
-    }
-  });
 
   if (loading) {
     return (
@@ -90,9 +82,7 @@ export default function BoardDetailPage() {
         </div>
         {/* <button onClick={() => handleCreateCard()}>crear +</button> */}
       </header>
-      
       <AddCardModal></AddCardModal>;
-
       <div className="board-columns">
         <div className="column">
           <div className="column-header todo-header">

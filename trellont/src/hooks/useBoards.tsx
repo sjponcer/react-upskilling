@@ -15,8 +15,10 @@ import {
   getCardsByBoard,
 } from "../services/api";
 import { useState } from "react";
+import { useParams } from "react-router-dom";
 
 export const useBoards = () => {
+  const { id } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
   const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null);
 
@@ -33,15 +35,15 @@ export const useBoards = () => {
   });
 
   const selectedBoard = useQuery({
-    queryKey: ["board", selectedBoardId],
-    queryFn: () => getBoardById(selectedBoardId || ""),
-    enabled: !!selectedBoardId?.length,
+    queryKey: ["board", id],
+    queryFn: () => getBoardById(id || ""),
+    enabled: !!id?.length,
   });
 
   const cards = useQuery({
-    queryKey: ["cards", selectedBoardId],
-    queryFn: () => getCardsByBoard(selectedBoardId || ""),
-    enabled: !!selectedBoardId?.length,
+    queryKey: ["cards", id],
+    queryFn: () => getCardsByBoard(id || ""),
+    enabled: !!id?.length,
   });
   /** La relación con useQuery es la siguiente:
    * Cuando usas una mutación (por ejemplo, crear un board), la mutación hace la petición al backend (POST, PUT, DELETE).
