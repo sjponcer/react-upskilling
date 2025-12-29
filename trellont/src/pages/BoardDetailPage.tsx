@@ -2,11 +2,11 @@ import { useNavigate } from "react-router-dom";
 import "./BoardDetailPage.css";
 import { useBoards } from "@/hooks/useBoards";
 import AddCardModal from "@/modals/AddCardModal";
+import EditBoardModal from "@/modals/EditBoardModal";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
   const { selectedBoard, cards, error, loading } = useBoards();
-
 
   if (loading) {
     return (
@@ -53,6 +53,11 @@ export default function BoardDetailPage() {
         <button className="back-button" onClick={() => navigate("/boards")}>
           ← Volver
         </button>
+
+        <EditBoardModal
+          boardName={selectedBoard.name}
+          boardDescription={selectedBoard.description ?? ""}
+        ></EditBoardModal>
 
         <div className="board-info">
           <h1>{selectedBoard.name}</h1>

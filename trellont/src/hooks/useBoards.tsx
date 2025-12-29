@@ -59,11 +59,11 @@ export const useBoards = () => {
   });
 
   const updateBoardMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateBoardInput }) =>
-      updateBoard(id, data),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ data }: { data: UpdateBoardInput }) =>
+      updateBoard(id!, data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] });
-      queryClient.invalidateQueries({ queryKey: ["board", variables.id] });
+      queryClient.invalidateQueries({ queryKey: ["board", id] });
     },
   });
 
@@ -114,8 +114,8 @@ export const useBoards = () => {
 
     // Board Mutations
     createBoard: createBoardMutation.mutateAsync,
-    updateBoard: (id: string, data: UpdateBoardInput) =>
-      updateBoardMutation.mutateAsync({ id, data }),
+    updateBoard: (data: UpdateBoardInput) =>
+      updateBoardMutation.mutateAsync({ data }),
     deleteBoard: deleteBoardMutation.mutateAsync,
     isCreatingBoard: createBoardMutation.isPending,
     isUpdatingBoard: updateBoardMutation.isPending,
