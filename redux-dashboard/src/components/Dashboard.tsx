@@ -1,6 +1,7 @@
 import { useAppSelector } from '../hooks/useAppDispatch';
 import { ItemForm } from './ItemForm';
 import { ItemList } from './ItemList';
+import { LogsViewer } from './LogsViewer';
 import './Dashboard.css';
 
 export const Dashboard = () => {
@@ -76,6 +77,10 @@ export const Dashboard = () => {
             )}
           </div>
           <ItemList />
+        </section>
+
+        <section className="logs-section">
+          <LogsViewer />
         </section>
       </div>
     </main>
