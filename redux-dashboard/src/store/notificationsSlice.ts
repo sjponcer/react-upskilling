@@ -16,22 +16,35 @@ const notificationsSlice = createSlice({
   initialState,
   reducers: {
     addNotification: (state, action: PayloadAction<Omit<Notification, 'id' | 'timestamp' | 'read'>>) => {
-      // TODO: Implement addNotification
+      const newNotification: Notification = {
+        ...action.payload,
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        read: false,
+      };
+      state.notifications.unshift(newNotification);
     },
     markAsRead: (state, action: PayloadAction<string>) => {
-      // TODO: Implement markAsRead
+      const notification = state.notifications.find(n => n.id === action.payload);
+      if (notification) {
+        notification.read = true;
+      }
     },
     markAllAsRead: (state) => {
-      // TODO: Implement markAllAsRead
+      state.notifications.forEach(n => n.read = true);
     },
     clearNotifications: (state) => {
-      // TODO: Implement clearNotifications
+      state.notifications = [];
     },
     addToast: (state, action: PayloadAction<Omit<Toast, 'id'>>) => {
-      // TODO: Implement addToast
+      const newToast: Toast = {
+        ...action.payload,
+        id: crypto.randomUUID(),
+      };
+      state.toasts.push(newToast);
     },
     removeToast: (state, action: PayloadAction<string>) => {
-      // TODO: Implement removeToast
+      state.toasts = state.toasts.filter(t => t.id !== action.payload);
     },
   },
 });
