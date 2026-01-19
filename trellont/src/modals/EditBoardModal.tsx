@@ -1,24 +1,7 @@
-import { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useBoards } from "@/hooks/useBoards";
+import FormModal, { type FormFieldConfig } from "@/components/FormModal";
 
 interface Params {
   boardName: string;
@@ -26,102 +9,57 @@ interface Params {
 }
 
 const formSchema = z.object({
-  name: z.string().min(5, {
-    message: "Name must be at least 5 characters.",
+  name: z.string().min(4, {
+    message: "Name must be at least 4 characters.",
   }),
-  description: z.string().min(5, {
-    message: "description must be at least 5 characters.",
-  }),
+  description: z.string().default(""),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function EditBoardModal({
   boardName,
   boardDescription,
 }: Params) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: boardName,
-      description: boardDescription,
-    },
-  });
-
-  const [modalOpen, setModalOpen] = useState(false);
   const { updateBoard } = useBoards();
 
-  function onSubmit(formValues: z.infer<typeof formSchema>) {
-    updateBoard(formValues);
-    setModalOpen(false);
-    form.reset();
-  }
+  const fields: FormFieldConfig[] = [
+    {
+      name: "name",
+      label: "Board Title",
+      placeholder: "Enter board title",
+    },
+    {
+      name: "description",
+      label: "Board Description",
+      placeholder: "Enter board description",
+    },
+  ];
+
+  const handleSubmit = async (values: FormValues) => {
+    await updateBoard({
+      name: values.name,
+      description: values.description || "",
+    });
+  };
 
   return (
-    <Popover
-      defaultOpen={false}
-      open={modalOpen}
-      modal={true}
-      onOpenChange={(open) => setModalOpen(open)}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          className="edit-button"
-          onClick={() => setModalOpen(true)}
-          style={{ padding: 10 }}
-        >
+    <FormModal<FormValues>
+      fields={fields}
+      schema={formSchema}
+      defaultValues={{
+        name: boardName,
+        description: boardDescription,
+      }}
+      triggerButton={
+        <Button className="edit-button" style={{ padding: 10 }}>
           Editar
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-80"
-        onFocusOutside={(event) => event.preventDefault()}
-        onInteractOutside={(event) => event.preventDefault()}
-        style={{ padding: 10 }}
-      >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Board Title</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Board Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" style={{ padding: 10 }}>
-              Submit
-            </Button>
-            <Button
-              type="submit"
-              onClick={() => {
-                setModalOpen(false);
-                form.reset();
-                form.clearErrors();
-              }}
-              style={{ padding: 10 }}
-            >
-              Cancel
-            </Button>
-          </form>
-        </Form>
-      </PopoverContent>
-    </Popover>
+      }
+      title="Editar tablero"
+      submitButtonText="Guardar"
+      cancelButtonText="Cancelar"
+      onSubmit={handleSubmit}
+    />
   );
 }

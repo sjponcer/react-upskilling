@@ -1,25 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
-
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useBoards } from "@/hooks/useBoards";
+import FormModal, { type FormFieldConfig } from "@/components/FormModal";
 
 interface Params {
   cardId: string;
@@ -28,93 +10,61 @@ interface Params {
 }
 
 const formSchema = z.object({
-  title: z.string().min(5, {
-    message: "Title must be at least 5 characters.",
+  title: z.string().min(4, {
+    message: "Title must be at least 4 characters.",
   }),
-  description: z.string().optional(),
+  description: z.string().default(""),
 });
 
-export default function EditCardModal({ cardId, cardTitle }: Params) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: cardTitle,
-      description: "",
-    },
-  });
+type FormValues = z.infer<typeof formSchema>;
 
-  const [modalOpen, setModalOpen] = useState(false);
+export default function EditCardModal({
+  cardId,
+  cardTitle,
+  cardDescription = "",
+}: Params) {
   const { updateCard } = useBoards();
 
-  function onSubmit(formValues: z.infer<typeof formSchema>) {
-    updateCard(cardId, formValues);
-    setModalOpen(false);
-    form.reset();
-  }
+  const fields: FormFieldConfig[] = [
+    {
+      name: "title",
+      label: "Card Title",
+      placeholder: "Enter card title",
+    },
+    {
+      name: "description",
+      label: "Card Description",
+      placeholder: "Enter card description (optional)",
+    },
+  ];
+
+  const handleSubmit = async (values: FormValues) => {
+    await updateCard(cardId, {
+      title: values.title,
+      description: values.description || "",
+    });
+  };
 
   return (
-    <Popover
-      defaultOpen={false}
-      open={modalOpen}
-      modal={true}
-      onOpenChange={(open) => setModalOpen(open)}
-    >
-      <PopoverTrigger asChild>
+    <FormModal<FormValues>
+      fields={fields}
+      schema={formSchema}
+      defaultValues={{
+        title: cardTitle,
+        description: cardDescription,
+      }}
+      triggerButton={
         <Button
           className="edit-button"
-          onClick={() => setModalOpen(true)}
           style={{ backgroundColor: "blueviolet" }}
         >
           Editar
         </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-80"
-        onFocusOutside={(event) => event.preventDefault()}
-        onInteractOutside={(event) => event.preventDefault()}
-      >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Card Title</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Card Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit">Submit</Button>
-            <Button
-              type="submit"
-              onClick={() => {
-                setModalOpen(false);
-                form.reset();
-                form.clearErrors();
-              }}
-            >
-              Cancel
-            </Button>
-          </form>
-        </Form>
-      </PopoverContent>
-    </Popover>
+      }
+      title="Editar tarjeta"
+      submitButtonText="Guardar"
+      cancelButtonText="Cancelar"
+      onSubmit={handleSubmit}
+    />
   );
 }

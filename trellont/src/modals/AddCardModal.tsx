@@ -1,128 +1,61 @@
-import { useState } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { useBoards } from "@/hooks/useBoards";
 import { useParams } from "react-router-dom";
+import FormModal, { type FormFieldConfig } from "@/components/FormModal";
 
 const formSchema = z.object({
-  title: z.string().min(5, {
-    message: "Title must be at least 5 characters.",
+  title: z.string().min(4, {
+    message: "Title must be at least 4 characters.",
   }),
-  description: z.string().min(5, {
-    message: "description must be at least 5 characters.",
-  }),
+  description: z.string().default(""),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function AddCardModal() {
   const { id } = useParams<{ id: string }>();
-  const [modalOpen, setModalOpen] = useState(false);
   const { createCard } = useBoards();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      description: "",
+  const fields: FormFieldConfig[] = [
+    {
+      name: "title",
+      label: "Card Title",
+      placeholder: "Enter card title",
     },
-  });
+    {
+      name: "description",
+      label: "Card Description",
+      placeholder: "Enter card description",
+    },
+  ];
 
-  function onSubmit(formValues: z.infer<typeof formSchema>) {
+  const handleSubmit = async (values: FormValues) => {
     if (id) {
-      const newBoard = {
+      const newCard = {
         boardId: id,
-        ...formValues,
+        title: values.title,
+        description: values.description || "",
       };
-
-      createCard(newBoard);
-      setModalOpen(false);
-      form.reset();
+      await createCard(newCard);
     }
-  }
+  };
 
   return (
-    <Popover
-      defaultOpen={false}
-      open={modalOpen}
-      modal={true}
-      onOpenChange={(open) => setModalOpen(open)}
-    >
-      <PopoverTrigger asChild>
-        <Button onClick={() => setModalOpen(true)} style={{ padding: 10 }}>
-          Create Card
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-80"
-        onFocusOutside={(event) => event.preventDefault()}
-        onInteractOutside={(event) => event.preventDefault()}
-        style={{
-          padding: 20,
-          position: "fixed",
-          top: "50%",
-          left: "50%",
-        }}
-      >
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Card Title</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Card Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" style={{ padding: 10 }}>
-              Submit
-            </Button>
-            <Button
-              type="submit"
-              onClick={() => {
-                setModalOpen(false);
-                form.reset();
-                form.clearErrors();
-              }}
-              style={{ padding: 10 }}
-            >
-              Cancel
-            </Button>
-          </form>
-        </Form>
-      </PopoverContent>
-    </Popover>
+    <FormModal<FormValues>
+      fields={fields}
+      schema={formSchema}
+      defaultValues={{
+        title: "",
+        description: "",
+      }}
+      triggerButton={
+        <Button style={{ padding: 10 }}>Create Card</Button>
+      }
+      title="Crear nueva tarjeta"
+      submitButtonText="Crear"
+      cancelButtonText="Cancelar"
+      onSubmit={handleSubmit}
+    />
   );
 }
