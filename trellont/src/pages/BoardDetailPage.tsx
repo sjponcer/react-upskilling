@@ -43,7 +43,7 @@ export default function BoardDetailPage() {
       default:
         return "#718096";
     }
-  };
+  }
 
   return (
     <div className="board-detail-page">
@@ -87,7 +87,7 @@ export default function BoardDetailPage() {
           </div>
         </div>
       </header>
-      <AddCardModal></AddCardModal>;
+      <AddCardModal></AddCardModal>
       <div className="board-columns">
         <div className="column">
           <div className="column-header todo-header">

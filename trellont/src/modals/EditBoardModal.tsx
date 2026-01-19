@@ -63,12 +63,19 @@ export default function EditBoardModal({
       onOpenChange={(open) => setModalOpen(open)}
     >
       <PopoverTrigger asChild>
-        <Button className="edit-button" onClick={() => setModalOpen(true)}>Editar</Button>
+        <Button
+          className="edit-button"
+          onClick={() => setModalOpen(true)}
+          style={{ padding: 10 }}
+        >
+          Editar
+        </Button>
       </PopoverTrigger>
       <PopoverContent
         className="w-80"
         onFocusOutside={(event) => event.preventDefault()}
         onInteractOutside={(event) => event.preventDefault()}
+        style={{ padding: 10 }}
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -98,7 +105,9 @@ export default function EditBoardModal({
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
+            <Button type="submit" style={{ padding: 10 }}>
+              Submit
+            </Button>
             <Button
               type="submit"
               onClick={() => {
@@ -106,6 +115,7 @@ export default function EditBoardModal({
                 form.reset();
                 form.clearErrors();
               }}
+              style={{ padding: 10 }}
             >
               Cancel
             </Button>

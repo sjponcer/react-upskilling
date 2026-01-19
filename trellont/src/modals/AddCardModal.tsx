@@ -33,7 +33,7 @@ export default function AddCardModal() {
   const { id } = useParams<{ id: string }>();
   const [modalOpen, setModalOpen] = useState(false);
   const { createCard } = useBoards();
-  
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,12 +63,20 @@ export default function AddCardModal() {
       onOpenChange={(open) => setModalOpen(open)}
     >
       <PopoverTrigger asChild>
-        <Button onClick={() => setModalOpen(true)}>Create Card</Button>
+        <Button onClick={() => setModalOpen(true)} style={{ padding: 10 }}>
+          Create Card
+        </Button>
       </PopoverTrigger>
       <PopoverContent
         className="w-80"
         onFocusOutside={(event) => event.preventDefault()}
         onInteractOutside={(event) => event.preventDefault()}
+        style={{
+          padding: 20,
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+        }}
       >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -98,7 +106,9 @@ export default function AddCardModal() {
                 </FormItem>
               )}
             />
-            <Button type="submit">Submit</Button>
+            <Button type="submit" style={{ padding: 10 }}>
+              Submit
+            </Button>
             <Button
               type="submit"
               onClick={() => {
@@ -106,6 +116,7 @@ export default function AddCardModal() {
                 form.reset();
                 form.clearErrors();
               }}
+              style={{ padding: 10 }}
             >
               Cancel
             </Button>
