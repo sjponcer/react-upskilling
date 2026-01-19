@@ -4,10 +4,12 @@ import { useBoards } from "@/hooks/useBoards";
 import AddCardModal from "@/modals/AddCardModal";
 import EditBoardModal from "@/modals/EditBoardModal";
 import EditCardModal from "@/modals/EditCardModal";
+import ConfirmModal from "@/components/ConfirmModal";
+import { Button } from "@/components/ui/button";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
-  const { selectedBoard, cards, error, loading } = useBoards();
+  const { selectedBoard, cards, error, loading, deleteCard } = useBoards();
 
   if (loading) {
     return (
@@ -43,7 +45,11 @@ export default function BoardDetailPage() {
       default:
         return "#718096";
     }
-  }
+  };
+
+  const handleDeleteCard = async (cardId: string) => {
+    await deleteCard(cardId);
+  };
 
   return (
     <div className="board-detail-page">
@@ -124,10 +130,24 @@ export default function BoardDetailPage() {
                       ))}
                     </div>
                   )}
-                  <EditCardModal
-                    cardId={card.id}
-                    cardTitle={card.title}
-                  ></EditCardModal>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <EditCardModal
+                      cardId={card.id}
+                      cardTitle={card.title}
+                    ></EditCardModal>
+                    <ConfirmModal
+                      triggerButton={
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          style={{ padding: 8 }}
+                        >
+                          Eliminar
+                        </Button>
+                      }
+                      onConfirm={() => handleDeleteCard(card.id)}
+                    />
+                  </div>
                 </div>
               ))}
             {cards?.filter((c) => c.status === "todo").length === 0 && (
@@ -171,10 +191,24 @@ export default function BoardDetailPage() {
                       ))}
                     </div>
                   )}
-                  <EditCardModal
-                    cardId={card.id}
-                    cardTitle={card.title}
-                  ></EditCardModal>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <EditCardModal
+                      cardId={card.id}
+                      cardTitle={card.title}
+                    ></EditCardModal>
+                    <ConfirmModal
+                      triggerButton={
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          style={{ padding: 8 }}
+                        >
+                          Eliminar
+                        </Button>
+                      }
+                      onConfirm={() => handleDeleteCard(card.id)}
+                    />
+                  </div>
                 </div>
               ))}
             {cards?.map((card) => card.status === "in-progress").length ===
@@ -219,10 +253,24 @@ export default function BoardDetailPage() {
                       ))}
                     </div>
                   )}
-                  <EditCardModal
-                    cardId={card.id}
-                    cardTitle={card.title}
-                  ></EditCardModal>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <EditCardModal
+                      cardId={card.id}
+                      cardTitle={card.title}
+                    ></EditCardModal>
+                    <ConfirmModal
+                      triggerButton={
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          style={{ padding: 8 }}
+                        >
+                          Eliminar
+                        </Button>
+                      }
+                      onConfirm={() => handleDeleteCard(card.id)}
+                    />
+                  </div>
                 </div>
               ))}
             {cards?.filter((c) => c.status === "done").length === 0 && (
