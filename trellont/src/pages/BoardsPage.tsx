@@ -2,13 +2,19 @@ import { useNavigate } from "react-router-dom";
 import "./BoardsPage.css";
 import { useBoards } from "../hooks/useBoards";
 import AddBoardModal from "@/modals/AddBoardModal";
+import ConfirmModal from "@/components/ConfirmModal";
+import { Button } from "@/components/ui/button";
 
 export default function BoardsPage() {
   const navigate = useNavigate();
-  const { boards, error, loading } = useBoards();
+  const { boards, error, loading, deleteBoard } = useBoards();
 
   const handleBoardClick = (boardId: string) => {
     navigate(`/board/${boardId}`);
+  };
+
+  const handleDeleteBoard = async (boardId: string) => {
+    await deleteBoard(boardId);
   };
 
   if (loading) {
@@ -52,18 +58,32 @@ export default function BoardsPage() {
             <div
               key={board.id}
               className="board-card"
-              onClick={() => handleBoardClick(board.id)}
               style={{ borderLeftColor: board.color }}
             >
               <div
                 className="board-color-indicator"
                 style={{ backgroundColor: board.color }}
               ></div>
-              <div className="board-content">
+              <div className="board-content" onClick={() => handleBoardClick(board.id)}>
                 <h3 className="board-name">{board.name}</h3>
                 <div className="board-footer">
                   <span className="view-link">Ver detalles →</span>
                 </div>
+              </div>
+              <div onClick={(e) => e.stopPropagation()}>
+                <ConfirmModal
+                  triggerButton={
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ padding: 8 }}
+                    >
+                      Eliminar
+                    </Button>
+                  }
+                  onConfirm={() => handleDeleteBoard(board.id)}
+                />
               </div>
             </div>
           ))
