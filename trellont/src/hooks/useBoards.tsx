@@ -88,16 +88,16 @@ export const useBoards = () => {
     mutationFn: ({ cardId, data }: { cardId: string; data: UpdateCardInput }) =>
       updateCard(cardId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards", selectedBoardId] });
-      queryClient.invalidateQueries({ queryKey: ["board", selectedBoardId] });
+      queryClient.invalidateQueries({ queryKey: ["cards", id] });
+      queryClient.invalidateQueries({ queryKey: ["board", id] });
     },
   });
 
   const deleteCardMutation = useMutation({
     mutationFn: (cardId: string) => deleteCard(cardId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cards", selectedBoardId] });
-      queryClient.invalidateQueries({ queryKey: ["board", selectedBoardId] });
+      queryClient.invalidateQueries({ queryKey: ["cards", id] });
+      queryClient.invalidateQueries({ queryKey: ["board", id] });
     },
   });
 
