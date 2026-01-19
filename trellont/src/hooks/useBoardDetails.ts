@@ -1,20 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  fetchBoardDetails,
-  fetchCardsByBoard,
   type BoardDetails,
   type Card,
+  getBoardById,
+  getCardsByBoard,
 } from "../services/api";
 
 export const useBoardDetails = (boardId: string | undefined) => {
   const boardQuery = useQuery<BoardDetails, Error>({
     queryKey: ["board", boardId],
-    queryFn: () => fetchBoardDetails(boardId!),
+    queryFn: () => getBoardById(boardId!),
   });
 
   const cardsQuery = useQuery<Card[], Error>({
     queryKey: ["cards", boardId],
-    queryFn: () => fetchCardsByBoard(boardId!),
+    queryFn: () => getCardsByBoard(boardId!),
   });
 
   const organizedCards = cardsQuery.data
