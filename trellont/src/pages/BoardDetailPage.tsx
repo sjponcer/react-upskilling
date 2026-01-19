@@ -3,6 +3,7 @@ import "./BoardDetailPage.css";
 import { useBoards } from "@/hooks/useBoards";
 import AddCardModal from "@/modals/AddCardModal";
 import EditBoardModal from "@/modals/EditBoardModal";
+import EditCardModal from "@/modals/EditCardModal";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
@@ -85,7 +86,6 @@ export default function BoardDetailPage() {
             </div>
           </div>
         </div>
-        {/* <button onClick={() => handleCreateCard()}>crear +</button> */}
       </header>
       <AddCardModal></AddCardModal>;
       <div className="board-columns">
@@ -124,6 +124,10 @@ export default function BoardDetailPage() {
                       ))}
                     </div>
                   )}
+                  <EditCardModal
+                    cardId={card.id}
+                    cardTitle={card.title}
+                  ></EditCardModal>
                 </div>
               ))}
             {cards?.filter((c) => c.status === "todo").length === 0 && (
@@ -167,6 +171,10 @@ export default function BoardDetailPage() {
                       ))}
                     </div>
                   )}
+                  <EditCardModal
+                    cardId={card.id}
+                    cardTitle={card.title}
+                  ></EditCardModal>
                 </div>
               ))}
             {cards?.map((card) => card.status === "in-progress").length ===
@@ -211,6 +219,10 @@ export default function BoardDetailPage() {
                       ))}
                     </div>
                   )}
+                  <EditCardModal
+                    cardId={card.id}
+                    cardTitle={card.title}
+                  ></EditCardModal>
                 </div>
               ))}
             {cards?.filter((c) => c.status === "done").length === 0 && (
