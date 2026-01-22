@@ -1,4 +1,4 @@
-import { Middleware } from '@reduxjs/toolkit';
+import { type Middleware } from '@reduxjs/toolkit';
 import { addLog } from './logsSlice';
 
 /**
@@ -17,14 +17,31 @@ import { addLog } from './logsSlice';
 // TODO: Implementar el middleware
 export const loggerMiddleware: Middleware = (storeAPI) => (next) => (action: any) => {
   // TODO 1: Verificar que la acción tenga un tipo válido
-
   // TODO 2: No loguear las acciones del propio logger para evitar loops infinitos
-
   // TODO 3: Determinar el tipo de log basándose en la acción
   // TODO 4: Crear un mensaje descriptivo basado en la acción
   // TODO 5: Despachar la acción addLog con los datos correspondientes
-
   // TODO 6: Permitir que la acción original continúe
+
+  let logType: 'items' | 'notifications' | 'system' = 'system';
+
+  if (action.type.startsWith('logs/')) {
+    return next(action);
+  }
+
+  if (action.type.startsWith('items/')) {
+    logType = 'items';
+  } else if (action.type.startsWith('notifications/')) {
+    logType = 'notifications';
+  } else {
+    logType = 'system';
+  }
+  
+  storeAPI.dispatch(addLog({
+    action: action.type,
+    type: logType,
+    details: JSON.stringify(action.payload),
+  }));
 
   // ⚠️ IMPORTANTE: Mientras tanto, solo dejamos pasar las acciones
   return next(action);
