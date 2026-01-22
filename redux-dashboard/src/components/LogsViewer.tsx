@@ -1,6 +1,7 @@
 import { useState } from 'react';
 // TODO: Importar los hooks necesarios de React Redux
-// import { useAppSelector } from '../hooks/useAppDispatch';
+import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch';
+import { clearLogs } from '../store/logsSlice';
 import './LogsViewer.css';
 
 export const LogsViewer = () => {
@@ -9,28 +10,21 @@ export const LogsViewer = () => {
   // TODO: EJERCICIO PARA EL ALUMNO
   // 1. Obtener los logs del estado de Redux usando useAppSelector
   // 2. Conectar este selector al slice de logs que se encuentra en store/logsSlice.ts
-  
+
   // Datos de ejemplo para visualización (el alumno debe reemplazar esto)
-  const logs = [
-    {
-      id: '1',
-      timestamp: new Date().toISOString(),
-      action: 'Ejemplo: Item agregado',
-      type: 'items' as const,
-      details: 'Este es un log de ejemplo'
-    }
-  ];
+  const logs = useAppSelector(state => state.logs.logs);
 
   // TODO: EJERCICIO PARA EL ALUMNO
   // 3. Implementar la función para limpiar los logs
   const handleClearLogs = () => {
-    console.log('TODO: Implementar clearLogs');
-    // dispatch(clearLogs());
+    // console.log('TODO: Implementar clearLogs');
+    const dispatch = useAppDispatch();
+    dispatch(clearLogs());
   };
 
   // Filtrar logs según el tipo seleccionado
-  const filteredLogs = filter === 'all' 
-    ? logs 
+  const filteredLogs = filter === 'all'
+    ? logs
     : logs.filter(log => log.type === filter);
 
   const getLogIcon = (type: string) => {
@@ -61,10 +55,10 @@ export const LogsViewer = () => {
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      second: '2-digit' 
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
     });
   };
 
@@ -75,35 +69,35 @@ export const LogsViewer = () => {
           <h2>📋 Activity Logs</h2>
           <span className="logs-count">{filteredLogs.length} eventos</span>
         </div>
-        
+
         <div className="logs-controls">
           <div className="filter-buttons">
-            <button 
+            <button
               className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
             >
               Todos
             </button>
-            <button 
+            <button
               className={`filter-btn ${filter === 'items' ? 'active' : ''}`}
               onClick={() => setFilter('items')}
             >
               📦 Items
             </button>
-            <button 
+            <button
               className={`filter-btn ${filter === 'notifications' ? 'active' : ''}`}
               onClick={() => setFilter('notifications')}
             >
               🔔 Notificaciones
             </button>
-            <button 
+            <button
               className={`filter-btn ${filter === 'system' ? 'active' : ''}`}
               onClick={() => setFilter('system')}
             >
               ⚙️ Sistema
             </button>
           </div>
-          
+
           <button className="clear-logs-btn" onClick={handleClearLogs}>
             🗑️ Limpiar
           </button>
@@ -129,8 +123,8 @@ export const LogsViewer = () => {
         ) : (
           <div className="logs-list">
             {filteredLogs.map((log) => (
-              <div 
-                key={log.id} 
+              <div
+                key={log.id}
                 className="log-entry"
                 style={{ borderLeftColor: getLogColor(log.type) }}
               >
@@ -144,7 +138,7 @@ export const LogsViewer = () => {
                     <div className="log-details">{log.details}</div>
                   )}
                 </div>
-                <span 
+                <span
                   className="log-badge"
                   style={{ backgroundColor: `${getLogColor(log.type)}20`, color: getLogColor(log.type) }}
                 >
@@ -176,23 +170,23 @@ export const store = configureStore({
   },
 });`}</pre>
               </li>
-              
+
               <li>
                 <strong>Crear un middleware para capturar acciones:</strong>
                 <p>Crea un archivo <code>store/loggerMiddleware.ts</code></p>
               </li>
-              
+
               <li>
                 <strong>Conectar los selectores en este componente:</strong>
                 <p>Reemplazar los datos de ejemplo con datos reales de Redux</p>
               </li>
-              
+
               <li>
                 <strong>Implementar la función clearLogs</strong>
                 <p>Usar useAppDispatch para despachar la acción</p>
               </li>
             </ol>
-            
+
             <h4>🎯 Objetivos de aprendizaje:</h4>
             <ul>
               <li>Entender cómo funcionan los middlewares en Redux</li>
