@@ -3,13 +3,24 @@ import "./BoardDetailPage.css";
 import { useBoards } from "@/hooks/useBoards";
 import AddCardModal from "@/modals/AddCardModal";
 import EditBoardModal from "@/modals/EditBoardModal";
-import EditCardModal from "@/modals/EditCardModal";
-import ConfirmModal from "@/components/ConfirmModal";
-import { Button } from "@/components/ui/button";
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { useState } from "react";
+import type { Card, CardStatus } from "@/services/api";
+import DroppableColumn from "@/components/DroppableColumn";
 
 export default function BoardDetailPage() {
   const navigate = useNavigate();
-  const { selectedBoard, cards, error, loading, deleteCard } = useBoards();
+  const { selectedBoard, cards, error, loading, deleteCard, updateCard } = useBoards();
+  const [activeCard, setActiveCard] = useState<Card | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   if (loading) {
     return (
@@ -49,6 +60,46 @@ export default function BoardDetailPage() {
 
   const handleDeleteCard = async (cardId: string) => {
     await deleteCard(cardId);
+  };
+
+  const cardsByStatus = {
+    todo: cards?.filter((c) => c.status === "todo") || [],
+    "in-progress": cards?.filter((c) => c.status === "in-progress") || [],
+    done: cards?.filter((c) => c.status === "done") || [],
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const card = cards?.find((c) => c.id === active.id);
+    if (card) {
+      setActiveCard(card);
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveCard(null);
+
+    if (!over || !cards) return;
+
+    const cardId = active.id as string;
+    const card = cards.find((c) => c.id === cardId);
+
+    if (!card) return;
+
+    const statuses: CardStatus[] = ["todo", "in-progress", "done"];
+    
+    const newStatus = statuses.includes(over.id as CardStatus)
+      ? (over.id as CardStatus)
+      : card.status;
+
+    if (newStatus !== card.status) {
+      try {
+        await updateCard(cardId, { status: newStatus });
+      } catch (error) {
+        console.error("Error al actualizar la card:", error);
+      }
+    }
   };
 
   return (
@@ -94,191 +145,47 @@ export default function BoardDetailPage() {
         </div>
       </header>
       <AddCardModal></AddCardModal>
-      <div className="board-columns">
-        <div className="column">
-          <div className="column-header todo-header">
-            <h2>📝 Por hacer</h2>
-            <span className="count">
-              {cards?.filter((c) => c.status === "todo").length}
-            </span>
-          </div>
-          <div className="cards-list">
-            {cards
-              ?.filter((card) => card.status === "todo")
-              .map((card) => (
-                <div key={card.id} className="card">
-                  <h3>{card.title}</h3>
-                  <div className="card-meta">
-                    <span
-                      className="priority-badge"
-                      style={{
-                        backgroundColor: getPriorityColor(card.priority),
-                      }}
-                    >
-                      {card.priority}
-                    </span>
-                    {card.assignedTo && (
-                      <span className="assignee">👤 {card.assignedTo}</span>
-                    )}
-                  </div>
-                  {card.tags.length > 0 && (
-                    <div className="tags">
-                      {card.tags.map((tag) => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <EditCardModal
-                      cardId={card.id}
-                      cardTitle={card.title}
-                    ></EditCardModal>
-                    <ConfirmModal
-                      triggerButton={
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          style={{ padding: 8 }}
-                        >
-                          Eliminar
-                        </Button>
-                      }
-                      onConfirm={() => handleDeleteCard(card.id)}
-                    />
-                  </div>
-                </div>
-              ))}
-            {cards?.filter((c) => c.status === "todo").length === 0 && (
-              <div className="empty-column">No hay tareas pendientes</div>
-            )}
-          </div>
+
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="board-columns">
+          <DroppableColumn
+            status="todo"
+            title="Por hacer"
+            emoji="📝"
+            cards={cardsByStatus.todo}
+            getPriorityColor={getPriorityColor}
+            onDeleteCard={handleDeleteCard}
+          />
+          <DroppableColumn
+            status="in-progress"
+            title="En progreso"
+            emoji="🔄"
+            cards={cardsByStatus["in-progress"]}
+            getPriorityColor={getPriorityColor}
+            onDeleteCard={handleDeleteCard}
+          />
+          <DroppableColumn
+            status="done"
+            title="Completadas"
+            emoji="✅"
+            cards={cardsByStatus.done}
+            getPriorityColor={getPriorityColor}
+            onDeleteCard={handleDeleteCard}
+          />
         </div>
 
-        <div className="column">
-          <div className="column-header progress-header">
-            <h2>🔄 En progreso</h2>
-            <span className="count">
-              {cards?.map((card) => card.status === "todo").length}
-            </span>
-          </div>
-          <div className="cards-list">
-            {cards
-              ?.filter((card) => card.status === "in-progress")
-              .map((card) => (
-                <div key={card.id} className="card">
-                  <h3>{card.title}</h3>
-                  <div className="card-meta">
-                    <span
-                      className="priority-badge"
-                      style={{
-                        backgroundColor: getPriorityColor(card.priority),
-                      }}
-                    >
-                      {card.priority}
-                    </span>
-                    {card.assignedTo && (
-                      <span className="assignee">👤 {card.assignedTo}</span>
-                    )}
-                  </div>
-                  {card.tags.length > 0 && (
-                    <div className="tags">
-                      {card.tags.map((tag) => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <EditCardModal
-                      cardId={card.id}
-                      cardTitle={card.title}
-                    ></EditCardModal>
-                    <ConfirmModal
-                      triggerButton={
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          style={{ padding: 8 }}
-                        >
-                          Eliminar
-                        </Button>
-                      }
-                      onConfirm={() => handleDeleteCard(card.id)}
-                    />
-                  </div>
-                </div>
-              ))}
-            {cards?.map((card) => card.status === "in-progress").length ===
-              0 && (
-              <div className="empty-column">No hay tareas en progreso</div>
-            )}
-          </div>
-        </div>
-
-        <div className="column">
-          <div className="column-header done-header">
-            <h2>✅ Completadas</h2>
-            <span className="count">
-              {cards?.filter((c) => c.status === "done").length}
-            </span>
-          </div>
-          <div className="cards-list">
-            {cards
-              ?.filter((card) => card.status === "done")
-              .map((card) => (
-                <div key={card.id} className="card">
-                  <h3>{card.title}</h3>
-                  <div className="card-meta">
-                    <span
-                      className="priority-badge"
-                      style={{
-                        backgroundColor: getPriorityColor(card.priority),
-                      }}
-                    >
-                      {card.priority}
-                    </span>
-                    {card.assignedTo && (
-                      <span className="assignee">👤 {card.assignedTo}</span>
-                    )}
-                  </div>
-                  {card.tags.length > 0 && (
-                    <div className="tags">
-                      {card.tags.map((tag) => (
-                        <span key={tag} className="tag">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <EditCardModal
-                      cardId={card.id}
-                      cardTitle={card.title}
-                    ></EditCardModal>
-                    <ConfirmModal
-                      triggerButton={
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          style={{ padding: 8 }}
-                        >
-                          Eliminar
-                        </Button>
-                      }
-                      onConfirm={() => handleDeleteCard(card.id)}
-                    />
-                  </div>
-                </div>
-              ))}
-            {cards?.filter((c) => c.status === "done").length === 0 && (
-              <div className="empty-column">No hay tareas completadas</div>
-            )}
-          </div>
-        </div>
-      </div>
+        <DragOverlay>
+          {activeCard ? (
+            <div className="card" style={{ opacity: 0.8, transform: "rotate(5deg)" }}>
+              <h3>{activeCard.title}</h3>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }
