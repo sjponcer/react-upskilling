@@ -1,6 +1,8 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
+export type CardStatus = "todo" | "in-progress" | "done";
+
 export interface Board {
   id: string;
   name: string;
@@ -24,7 +26,7 @@ export interface BoardDetails {
 export interface Card {
   id: string;
   title: string;
-  status: "todo" | "in-progress" | "done";
+  status: CardStatus;
   priority: "low" | "medium" | "high";
   assignedTo?: string;
   dueDate?: string;
@@ -128,7 +130,7 @@ export interface CreateCardInput {
   boardId: string;
   title: string;
   description?: string;
-  status?: "todo" | "in-progress" | "done";
+  status?: CardStatus;
   priority?: "low" | "medium" | "high";
   assignedTo?: string;
   dueDate?: string;
@@ -156,7 +158,7 @@ export const createCard = async (data: CreateCardInput): Promise<Card> => {
 export interface UpdateCardInput {
   title?: string;
   description?: string;
-  status?: "todo" | "in-progress" | "done";
+  status?: CardStatus;
   priority?: "low" | "medium" | "high";
   assignedTo?: string;
   dueDate?: string;
